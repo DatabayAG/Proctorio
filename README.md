@@ -75,14 +75,25 @@ protected static function setSessionCookieParams()
         $cookie_secure = !$ilSetting->get('https', 0) && ilHTTPS::getInstance()->isDetected();
         define('IL_COOKIE_SECURE', $cookie_secure); // Default Value
         // proctorio-patch: begin
-        $path = IL_COOKIE_PATH . '; samesite=None'; // With PHP >= 7.3 this could be done via the options array
-        session_set_cookie_params(
-            IL_COOKIE_EXPIRE,
-            $path,
-            IL_COOKIE_DOMAIN,
-            IL_COOKIE_SECURE,
-            IL_COOKIE_HTTPONLY
-        );
+        if (version_compare(PHP_VERSION, '7.3', '>=')) {
+            session_set_cookie_params([
+                'lifetime' => IL_COOKIE_EXPIRE,
+                'path' => IL_COOKIE_PATH,
+                'domain' => IL_COOKIE_DOMAIN,
+                'secure' => IL_COOKIE_SECURE,
+                'httponly' => IL_COOKIE_HTTPONLY,
+                'samesite' => 'None'
+            ]);
+        } else {
+            $path = IL_COOKIE_PATH . ';samesite=None'; // With PHP >= 7.3 this could be done via the options array
+            session_set_cookie_params(
+                IL_COOKIE_EXPIRE,
+                $path,
+                IL_COOKIE_DOMAIN,
+                IL_COOKIE_SECURE,
+                IL_COOKIE_HTTPONLY
+            );
+        }
         // proctorio-patch: end
     }
     // proctorio-patch: begin
@@ -96,16 +107,31 @@ protected static function setSessionCookieParams()
 ```php
 // [...]
 // proctorio-patch: begin
-$path = IL_COOKIE_PATH . '; samesite=None'; // With PHP >= 7.3 this could be done via the options array
-setcookie(
-    $a_cookie_name,
-    $a_cookie_value,
-    $expire,
-    $path,
-    IL_COOKIE_DOMAIN,
-    $secure,
-    IL_COOKIE_HTTPONLY
-);
+if (version_compare(PHP_VERSION, '7.3', '>=')) {
+    setcookie(
+        $a_cookie_name,
+        $a_cookie_value,
+        [
+            'expires' => $expire,
+            'path' => IL_COOKIE_PATH,
+            'domain' => IL_COOKIE_DOMAIN,
+            'secure' => $secure,
+            'httponly' => IL_COOKIE_HTTPONLY,
+            'samesite' => 'None'
+        ]
+    );
+} else {
+    $path = IL_COOKIE_PATH . ';samesite=None'; // With PHP >= 7.3 this could be done via the options array
+    setcookie(
+        $a_cookie_name,
+        $a_cookie_value,
+        $expire,
+        $path,
+        IL_COOKIE_DOMAIN,
+        $secure,
+        IL_COOKIE_HTTPONLY
+    );
+}
 // proctorio-patch: end
 // [...]
 ```
@@ -138,6 +164,33 @@ public function init()
     }
     return true;
 }
+// [...]
+```
+
+\ilHTTPS::enableSecureCookies
+```php
+// [...]
+// proctorio-patch: begin
+if (version_compare(PHP_VERSION, '7.3', '>=')) {
+    session_set_cookie_params([
+        'lifetime' => IL_COOKIE_EXPIRE,
+        'path' => IL_COOKIE_PATH,
+        'domain' => IL_COOKIE_DOMAIN,
+        'secure' => IL_COOKIE_SECURE,
+        'httponly' => true,
+        'samesite' => 'None'
+    ]);
+} else {
+    $path = IL_COOKIE_PATH . '; samesite=None'; // With PHP >= 7.3 this could be done via the options array
+    session_set_cookie_params(
+        IL_COOKIE_EXPIRE,
+        $path,
+        IL_COOKIE_DOMAIN,
+        true,
+        IL_COOKIE_HTTPONLY
+    );
+}
+// proctorio-patch: end
 // [...]
 ```
 
