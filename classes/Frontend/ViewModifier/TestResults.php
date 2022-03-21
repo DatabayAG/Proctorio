@@ -8,6 +8,7 @@ use ilObjectFactory;
 use ilObjTest;
 use ilParticipantsTestResultsGUI;
 use ilUIHookPluginGUI;
+use ilUIPluginRouterGUI;
 
 /**
  * Class TestResults
@@ -75,7 +76,7 @@ class TestResults extends Base
             $this->getRefId()
         );
         $url = $this->ctrl->getLinkTargetByClass(
-            ['ilUIPluginRouterGUI', get_class($this->getCoreController())],
+            [ilUIPluginRouterGUI::class, get_class($this->getCoreController())],
             'TestLaunchAndReview.review',
             '',
             false,

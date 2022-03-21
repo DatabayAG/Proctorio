@@ -8,7 +8,9 @@ use ilObjectFactory;
 use ilObjTestGUI;
 use ilObjTestSettingsGeneralGUI;
 use ilObjTestSettingsScoringResultsGUI;
+use ilRepositoryGUI;
 use ilTabsGUI;
+use ilUIPluginRouterGUI;
 
 /**
  * Class TestSettings
@@ -81,9 +83,9 @@ class TestSettings extends Base
             $this->isCommandClass(get_class($this->getCoreController())) &&
             strpos($this->ctrl->getCmd(), $this->getClassName()) !== false
         ) {
-            $this->ctrl->setParameterByClass('ilObjTestSettingsGeneralGUI', 'ref_id', $this->getRefId());
+            $this->ctrl->setParameterByClass(ilObjTestSettingsGeneralGUI::class, 'ref_id', $this->getRefId());
             $tstSettingsUrl = $this->ctrl->getLinkTargetByClass(
-                ['ilRepositoryGUI', 'ilObjTestGUI', 'ilObjTestSettingsGeneralGUI'],
+                [ilRepositoryGUI::class, ilObjTestGUI::class, ilObjTestSettingsGeneralGUI::class],
                 '',
                 '',
                 false,
@@ -97,7 +99,7 @@ class TestSettings extends Base
                 $tabs->addSubTabTarget(
                     $this->getCoreController()->getPluginObject()->getPrefix() . '_exam_tab_proctorio',
                     $this->ctrl->getLinkTargetByClass(
-                        ['ilUIPluginRouterGUI', get_class($this->getCoreController())],
+                        [ilUIPluginRouterGUI::class, get_class($this->getCoreController())],
                         'TestSettings.showSettingsCmd'
                     )
                 );
