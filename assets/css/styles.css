@@ -1,25 +1,14 @@
-/*		Color scheme
-		Dark BLue: #0f2152;
-		Mid Blue: #4c6586;
-		Green: #6ea03c;
-		Light Brown: #dcb496;
-		Dark Brown: #523228;
-		Orange: #fa8228;
-		External Blue: #21c5d8;
-		ILIAS 4 MainMenu Color: #c8e6ff;
-*/
-/** if left unchanged, you have to copy all the background images to your skin/images folder.
-* To use the delos background images in your skin,
-* please change this value (in custom less data or in variables.less of your custom skin) to "../../../../templates/default/images/"
-*/
-/** if left unchanged, you have to copy delos fonts folder to your skin folder.
-* To use the delos fonts in your skin,
-* please change this value (in custom less data or variables.less of your custom skin) to "../../../../templates/default/fonts/"
-*/
-/* @il-highlight-bg: saturate(lighten(@brand-warning, 34%), 80%); */
-/* @il-highlight-bg: lighten(@brand-secondary, 44%); */
-/* @il-highlight-bg: lighten(#21c5d8, 40%); */
-/* @nav-tabs-link-hover-border-color: @brand-primary; */
+/**
+This file contains all less Variables set by ILIAS. Please do not overwrite bootstrap standard variables here.
+Set an ILIAS variable here with an il- prefix and overwrite the bootstrap variable in the bootstrap variables file
+with the il- variable set here.
+ */
+/** headline text transform **/
+/** inline shadow of a message container **/
+/** border configuration, the color is automatically computed from the three color variants **/
+/** nagtive or positive contrast color for text and glyph **/
+/** contrast threshold for contrast color **/
+/** three color variants for neutral, important, breaking Head Infos **/
 .proctorio-settings-deck .row {
   margin-left: 0;
   margin-right: 0;
@@ -27,7 +16,7 @@
 .proctorio-settings-deck .row > div {
   padding-left: 5px;
   padding-right: 5px;
-  margin-bottom: 6px;
+  margin-bottom: 10px;
 }
 .proctorio-settings-deck .row.row-equal-height:before {
   content: none !important;
@@ -50,7 +39,7 @@
 .proctorio-settings-card {
   padding: 0;
   width: 100%;
-  background-color: white;
+  background-color: #557b2e;
 }
 .proctorio-settings-card:hover {
   cursor: pointer;
@@ -59,7 +48,7 @@
   cursor: default;
 }
 .proctorio-settings-card.disabled {
-  background: repeating-linear-gradient(45deg, white, rgba(255, 255, 255, 0.2) 10px, rgba(255, 255, 255, 0.5) 10px, rgba(255, 255, 255, 0.8) 20px);
+  background: repeating-linear-gradient(45deg, #557b2e, rgba(85, 123, 46, 0.2) 10px, rgba(85, 123, 46, 0.5) 10px, rgba(85, 123, 46, 0.8) 20px);
 }
 .proctorio-settings-card.active {
   background-color: #dff0d8;

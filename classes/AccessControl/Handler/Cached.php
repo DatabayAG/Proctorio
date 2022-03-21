@@ -16,7 +16,7 @@ class Cached implements AccessControl\AccessHandler
 {
     /** @var AccessControl\AccessHandler */
     private $origin;
-    /** @var array */
+    /** @var array<string, bool> */
     private $cache = [];
 
     public function __construct(AccessControl\AccessHandler $origin)

@@ -25,7 +25,7 @@ class Impl implements Acl
 
     /** @var Registry */
     private $roleRegistry;
-    /** @var array */
+    /** @var array<string, array{instance: Resource}> */
     private $resources = [];
 
     /**
@@ -154,13 +154,13 @@ class Impl implements Acl
     /**
      * Returns the rules associated with a Resource and a Role, or null if no such rules exist
      * @param Resource|null $resource
-     * @param Role|null     $role
-     * @param bool          $create
+     * @param Role|null $role
+     * @param bool $create
      * @return array
      */
     private function &getRules(
         ?Resource $resource = null,
-        Role $role = null,
+        ?Role $role = null,
         bool $create = false
     ) : array {
         $null = null;

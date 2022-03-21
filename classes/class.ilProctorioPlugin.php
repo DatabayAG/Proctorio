@@ -109,7 +109,7 @@ class ilProctorioPlugin extends ilUserInterfaceHookPlugin
     {
         parent::afterUninstall();
 
-        $settings = new \ilSetting($this->getId());
+        $settings = new ilSetting($this->getId());
         $settings->deleteAll();
     }
 

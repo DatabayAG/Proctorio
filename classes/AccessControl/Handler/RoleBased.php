@@ -26,7 +26,7 @@ class RoleBased implements AccessHandler
     /** @var Settings */
     private $settings;
     /** @var int[] */
-    protected $assignedGlobalRoles = [];
+    private $assignedGlobalRoles;
 
     public function __construct(
         ilObjUser $actor,
@@ -39,14 +39,14 @@ class RoleBased implements AccessHandler
         $this->rbacReview = $rbacReview;
         $this->acl = $acl;
 
-        $this->assignedGlobalRoles = $this->rbacReview->assignedGlobalRoles($this->actor->getId());
+        $this->assignedGlobalRoles = array_map('intval', $this->rbacReview->assignedGlobalRoles($this->actor->getId()));
     }
 
     public function withActor(ilObjUser $actor) : AccessHandler
     {
         $clone = clone $this;
         $clone->actor = $actor;
-        $clone->assignedGlobalRoles = $this->rbacReview->assignedGlobalRoles($actor->getId());
+        $clone->assignedGlobalRoles = array_map('intval', $this->rbacReview->assignedGlobalRoles($actor->getId()));
 
         return $clone;
     }
@@ -58,19 +58,17 @@ class RoleBased implements AccessHandler
 
     private function hasAccess(string $resource, string $privilege) : bool
     {
-        $hasAccess = false;
-
         foreach ($this->settings->getAclRoleToGlobalRoleMappings() as $aclRole => $globalRoleIds) {
             $roles = array_intersect($globalRoleIds, $this->assignedGlobalRoles);
             if (count($roles) > 0) {
                 $hasAccess = $this->acl->isAllowed($aclRole, $resource, $privilege);
                 if ($hasAccess) {
-                    return $hasAccess;
+                    return true;
                 }
             }
         }
 
-        return $hasAccess;
+        return false;
     }
 
     public function mayTakeTests(ilObjTest $test) : bool
