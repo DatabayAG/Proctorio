@@ -13,14 +13,9 @@ use ILIAS\Plugin\Proctorio\AccessControl\Acl\Role;
  */
 class Registry
 {
-    /** @var array */
+    /** @var array<int, Role> */
     private $roles = [];
 
-    /**
-     * @param Role $role
-     * @return Registry
-     * @throws InvalidArgument
-     */
     public function add(Role $role) : self
     {
         $roleId = $role->getRoleId();
@@ -72,7 +67,7 @@ class Registry
     }
 
     /**
-     * @return Role
+     * @return array<int, Role>
      */
     public function getRoles() : array
     {

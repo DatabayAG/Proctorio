@@ -4,6 +4,7 @@
 namespace ILIAS\Plugin\Proctorio\Webservice;
 
 use ILIAS\Data\URI;
+use ilObjTest;
 
 /**
  * Interface Rest
@@ -12,26 +13,14 @@ use ILIAS\Data\URI;
  */
 interface Rest
 {
-    /**
-     * @param \ilObjTest $test
-     * @param URI $testLaunchUrl
-     * @param URI $testUrl
-     * @return URI
-     */
     public function getLaunchUrl(
-        \ilObjTest $test,
+        ilObjTest $test,
         URI $testLaunchUrl,
         URI $testUrl
     ) : URI;
 
-    /**
-     * @param \ilObjTest $test
-     * @param URI $testLaunchUrl
-     * @param URI $testUrl
-     * @return URI
-     */
     public function getReviewUrl(
-        \ilObjTest $test,
+        ilObjTest $test,
         URI $testLaunchUrl,
         URI $testUrl
     ) : URI;

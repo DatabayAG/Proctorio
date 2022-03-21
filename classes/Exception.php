@@ -3,11 +3,13 @@
 
 namespace ILIAS\Plugin\Proctorio;
 
+use ilException;
+
 /**
  * Class Exception
  * @package ILIAS\Plugin\Proctorio
  * @author Michael Jansen <mjansen@databay.de>
  */
-class Exception extends \ilException
+class Exception extends ilException
 {
 }

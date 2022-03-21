@@ -3,6 +3,13 @@
 
 namespace ILIAS\Plugin\Proctorio\Frontend\ViewModifier;
 
+use ilMarkSchemaGUI;
+use ilObjectFactory;
+use ilObjTestGUI;
+use ilObjTestSettingsGeneralGUI;
+use ilObjTestSettingsScoringResultsGUI;
+use ilTabsGUI;
+
 /**
  * Class TestSettings
  * @package ILIAS\Plugin\Proctorio\Frontend\Controller
@@ -36,11 +43,11 @@ class TestSettings extends Base
         }
 
         if (
-            !$this->isCommandClass(\ilObjTestSettingsGeneralGUI::class) &&
-            !$this->isCommandClass(\ilMarkSchemaGUI::class) &&
-            !$this->isCommandClass(\ilObjTestSettingsScoringResultsGUI::class) &&
+            !$this->isCommandClass(ilObjTestSettingsGeneralGUI::class) &&
+            !$this->isCommandClass(ilMarkSchemaGUI::class) &&
+            !$this->isCommandClass(ilObjTestSettingsScoringResultsGUI::class) &&
             !(
-                $this->isCommandClass(\ilObjTestGUI::class) &&
+                $this->isCommandClass(ilObjTestGUI::class) &&
                 in_array($this->ctrl->getCmd(), ['defaults', 'addDefaults', 'deleteDefaults', 'applyDefaults'])
             ) &&
             !(
@@ -67,7 +74,7 @@ class TestSettings extends Base
      */
     public function modifyGUI(string $component, string $part, array $parameters) : void
     {
-        /** @var \ilTabsGUI $tabs */
+        /** @var ilTabsGUI $tabs */
         $tabs = $parameters['tabs'];
 
         if (
@@ -84,7 +91,7 @@ class TestSettings extends Base
             );
             $tabs->setBackTarget($this->lng->txt('back'), $tstSettingsUrl);
         } else {
-            $test = \ilObjectFactory::getInstanceByRefId($this->getRefId());
+            $test = ilObjectFactory::getInstanceByRefId($this->getRefId());
             if ($this->service->isTestSupported($test) && $this->accessHandler->mayReadTestSettings($test)) {
                 $this->ctrl->setParameterByClass(get_class($this->getCoreController()), 'ref_id', $this->getRefId());
                 $tabs->addSubTabTarget(

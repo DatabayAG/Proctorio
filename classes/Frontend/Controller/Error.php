@@ -10,26 +10,17 @@ namespace ILIAS\Plugin\Proctorio\Frontend\Controller;
  */
 class Error extends Base
 {
-    /**
-     * @inheritdoc
-     */
     public function getDefaultCommand() : string
     {
         return 'showCmd';
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function init() : void
+    protected function init() : void
     {
-        $this->pageTemplate->getStandardTemplate();
+        $this->pageTemplate->loadStandardTemplate();
         parent::init();
     }
 
-    /**
-     * @return string
-     */
     public function showCmd() : string
     {
         return $this->uiRenderer->render([

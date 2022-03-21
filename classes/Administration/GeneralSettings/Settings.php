@@ -5,6 +5,8 @@ namespace ILIAS\Plugin\Proctorio\Administration\GeneralSettings;
 
 use ILIAS\Plugin\Proctorio\AccessControl\Acl;
 use ILIAS\Plugin\Proctorio\UI\Form\Bindable;
+use ilPropertyFormGUI;
+use ilSetting;
 
 /**
  * Class Settings
@@ -13,7 +15,7 @@ use ILIAS\Plugin\Proctorio\UI\Form\Bindable;
  */
 class Settings implements Bindable
 {
-    /** @var \ilSetting */
+    /** @var ilSetting */
     private $settings;
     /** @var string */
     private $apiKey = '';
@@ -27,15 +29,10 @@ class Settings implements Bindable
     private $apiLaunchAndReviewEndpoint = '';
     /** @var Acl */
     private $acl;
-    /** @var array */
+    /** @var array<int, int[]> */
     protected $aclRoleToGlobalRoleMappings = [];
 
-    /**
-     * Settings constructor.
-     * @param \ilSetting $settings
-     * @param Acl $settings
-     */
-    public function __construct(\ilSetting $settings, Acl $acl)
+    public function __construct(ilSetting $settings, Acl $acl)
     {
         $this->settings = $settings;
         $this->acl = $acl;
@@ -43,71 +40,50 @@ class Settings implements Bindable
         $this->read();
     }
 
-    /**
-     * @return \ilSetting
-     */
-    public function getSettings() : \ilSetting
+    public function getSettings() : ilSetting
     {
         return $this->settings;
     }
 
-    /**
-     * @param \ilSetting $settings
-     */
-    public function setSettings(\ilSetting $settings) : void
+    public function setSettings(ilSetting $settings) : void
     {
         $this->settings = $settings;
     }
 
-    /**
-     * @return string
-     */
     public function getApiKey() : string
     {
         return $this->apiKey;
     }
 
-    /**
-     * @return string
-     */
     public function getApiSecret() : string
     {
         return $this->apiSecret;
     }
 
-    /**
-     * @return string
-     */
     public function getApiRegion() : string
     {
         return $this->apiRegion;
     }
 
-    /**
-     * @return string
-     */
     public function getApiBaseUrl() : string
     {
         return $this->apiBaseUrl;
     }
 
-    /**
-     * @return string
-     */
     public function getApiLaunchAndReviewEndpoint() : string
     {
         return $this->apiLaunchAndReviewEndpoint;
     }
 
     /**
-     * @return array
+     * @return array<int, int[]>
      */
     public function getAclRoleToGlobalRoleMappings() : array
     {
         return $this->aclRoleToGlobalRoleMappings;
     }
 
-    protected function read()
+    protected function read() : void
     {
         $this->apiKey = (string) $this->settings->get('api_key', '');
         $this->apiSecret = (string) $this->settings->get('api_secret', '');
@@ -123,9 +99,9 @@ class Settings implements Bindable
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function bindForm(\ilPropertyFormGUI $form)
+    public function bindForm(ilPropertyFormGUI $form) : void
     {
         $this->apiKey = (string) $form->getInput('api_key');
         $this->apiSecret = (string) $form->getInput('api_secret');
@@ -144,9 +120,9 @@ class Settings implements Bindable
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function onFormSaved()
+    public function onFormSaved() : void
     {
         $this->settings->set('api_key', $this->getApiKey());
         $this->settings->set('api_secret', $this->getApiSecret());
@@ -157,7 +133,7 @@ class Settings implements Bindable
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
     public function toArray() : array
     {

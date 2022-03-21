@@ -3,56 +3,25 @@
 
 namespace ILIAS\Plugin\Proctorio\Refinery\Transformation;
 
-use ILIAS\Data\URI;
 use ILIAS\Plugin\Proctorio\Data\TrustedURI;
-use ILIAS\Transformation\Transformation;
+use ILIAS\Refinery\URI\StringTransformation;
 
 /**
  * Class UriToString
  * @package ILIAS\Plugin\Proctorio\Refinery\Transformation
  * @author Michael Jansen <mjansen@databay.de>
  */
-class UriToString implements Transformation
+class UriToString extends StringTransformation
 {
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
     public function transform($from)
     {
-        if (false === $from instanceof URI) {
-            throw new \InvalidArgumentException(
-                sprintf('The value MUST be of type "%s"', URI::class),
-                'not_uri_object'
-            );
-        }
-
         if ($from instanceof TrustedURI) {
             return $from->getUri();
         }
 
-        /** @var URI $from */
-        $result = $from->baseURI();
-
-        $query = $from->query();
-        if (null !== $query) {
-            $query = '?' . $query;
-        }
-        $result .= $query;
-
-        $fragment = $from->fragment();
-        if (null !== $fragment) {
-            $fragment = '#' . $fragment;
-        }
-        $result .= $fragment;
-
-        return $result;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function __invoke($from)
-    {
-        return $this->transform($from);
+        return parent::transform($from);
     }
 }

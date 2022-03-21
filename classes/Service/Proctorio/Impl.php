@@ -4,6 +4,9 @@
 namespace ILIAS\Plugin\Proctorio\Service\Proctorio;
 
 use ILIAS\Plugin\Proctorio\Administration\GeneralSettings\Settings;
+use ilObjTest;
+use ilObjUser;
+use ilPropertyFormGUI;
 
 /**
  * Class Impl
@@ -12,62 +15,42 @@ use ILIAS\Plugin\Proctorio\Administration\GeneralSettings\Settings;
  */
 class Impl
 {
-    /** @var \ilObjUser */
+    /** @var ilObjUser */
     private $actor;
     /** @var Settings */
     private $globalSettings;
 
-    /**
-     * Impl constructor.
-     * @param \ilObjUser $actor
-     * @param Settings $globalSettings
-     */
-    public function __construct(\ilObjUser $actor, Settings $globalSettings)
+    public function __construct(ilObjUser $actor, Settings $globalSettings)
     {
         $this->actor = $actor;
         $this->globalSettings = $globalSettings;
     }
 
-    /**
-     * @return \ilObjUser
-     */
-    public function getActor() : \ilObjUser
+    public function getActor() : ilObjUser
     {
         return $this->actor;
     }
 
-    /**
-     * @param \ilObjTest $test
-     * @return bool
-     */
-    public function isTestSupported(\ilObjTest $test) : bool
+    public function isTestSupported(ilObjTest $test) : bool
     {
         return $test->isRandomTest() || $test->isFixedTest();
     }
 
-    /**
-     * @param \ilObjTest $test
-     * @return bool
-     */
-    public function isConfigurationChangeAllowed(\ilObjTest $test) : bool
+    public function isConfigurationChangeAllowed(ilObjTest $test) : bool
     {
         return !$test->participantDataExist();
     }
 
-    /**
-     * @param \ilObjTest $test
-     * @return string
-     */
-    private function getTestSettingsPrefix(\ilObjTest $test) : string
+    private function getTestSettingsPrefix(ilObjTest $test) : string
     {
         return 'tst_set_' . $test->getId();
     }
 
     /**
-     * @param \ilObjTest $test
-     * @return array
+     * @param ilObjTest $test
+     * @return array<string, mixed>
      */
-    public function getConfigurationForTest(\ilObjTest $test) : array
+    public function getConfigurationForTest(ilObjTest $test) : array
     {
         return [
             'status' => $this->globalSettings->getSettings()->get($this->getTestSettingsPrefix($test) . '_status', false),
@@ -79,15 +62,15 @@ class Impl
     }
 
     /**
-     * @param \ilObjTest $test
-     * @param \ilPropertyFormGUI $form
+     * @param ilObjTest $test
+     * @param ilPropertyFormGUI $form
      */
-    public function saveConfigurationForTest(\ilObjTest $test, \ilPropertyFormGUI $form) : void
+    public function saveConfigurationForTest(ilObjTest $test, ilPropertyFormGUI $form) : void
     {
         $this->globalSettings->getSettings()->set($this->getTestSettingsPrefix($test) . '_status', (int) $form->getInput('status'));
         $this->globalSettings->getSettings()->set($this->getTestSettingsPrefix($test) . '_exam_settings', implode(
             ',',
-            $form->getInput('exam_settings')
+            (array) $form->getInput('exam_settings')
         ));
     }
 }

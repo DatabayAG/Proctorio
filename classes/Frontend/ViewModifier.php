@@ -38,7 +38,7 @@ interface ViewModifier
      * @param string $component
      * @param string $part
      * @param array $parameters
-     * @return array A `\ilUIHookPluginGUI::modifyGUI()` compatible array
+     * @return void
      */
     public function modifyGUI(string $component, string $part, array $parameters) : void;
 }

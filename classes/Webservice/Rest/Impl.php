@@ -3,6 +3,7 @@
 
 namespace ILIAS\Plugin\Proctorio\Webservice\Rest;
 
+use GuzzleHttp\Exception\GuzzleException;
 use ILIAS\Data\URI;
 use ILIAS\Plugin\Proctorio\Administration\GeneralSettings\Settings;
 use ILIAS\Plugin\Proctorio\Data\TrustedURI;
@@ -14,6 +15,15 @@ use ILIAS\Plugin\Proctorio\Webservice\Rest;
 use GuzzleHttp\Client;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
+use ilLogger;
+use ilObjTest;
+use ilObjTestGUI;
+use ilTestEvaluationGUI;
+use ilTestPasswordProtectionGUI;
+use ilTestPlayerCommands;
+use ilTestPlayerFixedQuestionSetGUI;
+use ilTestPlayerRandomQuestionSetGUI;
+use ilTestSubmissionReviewGUI;
 
 /**
  * Class Impl
@@ -24,18 +34,12 @@ class Impl implements Rest
 {
     /** @var ProctorioService */
     private $service;
-    /** @var \ilLogger */
+    /** @var ilLogger */
     private $logger;
     /** @var Settings */
     private $proctorioSettings;
 
-    /**
-     * Impl constructor.
-     * @param ProctorioService $service
-     * @param Settings $proctorioSettings
-     * @param \ilLogger $logger
-     */
-    public function __construct(ProctorioService $service, Settings $proctorioSettings, \ilLogger $logger)
+    public function __construct(ProctorioService $service, Settings $proctorioSettings, ilLogger $logger)
     {
         $this->service = $service;
         $this->proctorioSettings = $proctorioSettings;
@@ -43,20 +47,20 @@ class Impl implements Rest
     }
 
     /**
-     * @param \ilObjTest $test
+     * @param ilObjTest $test
      * @param URI $testLaunchUrl
      * @param URI $testUrl
-     * @return array
-     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @return string
+     * @throws GuzzleException
      */
     private function request(
-        \ilObjTest $test,
+        ilObjTest $test,
         URI $testLaunchUrl,
         URI $testUrl
     ) : string {
-        $this->logger->debug(sprintf('Executing Proctorio API call'));
+        $this->logger->debug('Executing Proctorio API call');
 
-        $baseUrlWithScript = $testUrl->schema() . '://' . $testUrl->host();
+        $baseUrlWithScript = $testUrl->getSchema() . '://' . $testUrl->getHost();
         $regexQuotedBaseUrlWithScript = preg_quote($baseUrlWithScript, '/');
 
         $startRegexWithBaseUrl = $this->buildExamStartRegex($test, $regexQuotedBaseUrlWithScript, $testLaunchUrl);
@@ -94,11 +98,11 @@ class Impl implements Rest
             'exam_end' => $regexQuotedBaseUrlWithScript . $endRegex,
             'exam_settings' => implode(',', $this->service->getConfigurationForTest($test)['exam_settings']),
             'fullname' => $this->service->getActor()->getFullname(),
-            'exam_tag' => $test->getId(),
+            'exam_tag' => (string) $test->getId(),
             'oauth_signature_method' => 'HMAC-SHA1',
             'oauth_version' => '1.0',
             'oauth_timestamp' => (string) time(),
-            'oauth_nonce' => md5(uniqid((string) rand(), true)),
+            'oauth_nonce' => md5(uniqid((string) mt_rand(), true)),
         ];
         $consumerSecret = $this->proctorioSettings->getApiSecret();
 
@@ -174,30 +178,30 @@ class Impl implements Rest
                 "Unexpected Proctorio API Response: %s",
                 $responseBody
             ), (int) $responseBody);
-        } else {
-            throw new Exception(sprintf(
-                "Unexpected Proctorio API Response: %s",
-                $responseBody
-            ));
         }
+
+        throw new Exception(sprintf(
+            "Unexpected Proctorio API Response: %s",
+            $responseBody
+        ));
     }
 
     /**
      * @inheritDoc
      * @throws Exception
      * @throws QualifiedResponseError
-     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws GuzzleException
      */
     public function getLaunchUrl(
-        \ilObjTest $test,
+        ilObjTest $test,
         URI $testLaunchUrl,
         URI $testUrl
     ) : URI {
         $responseBody = $this->request($test, $testLaunchUrl, $testUrl);
 
-        if (is_string($responseBody) && strlen($responseBody) > 0) {
-            $responseArray = json_decode($responseBody, true);
-            $isLaunchApiSuccess = is_array($responseArray) && isset($responseArray[0]) && is_string($responseArray[0]) && strlen($responseArray[0]) > 0;
+        if ($responseBody !== '') {
+            $responseArray = json_decode($responseBody, true, 512, JSON_THROW_ON_ERROR);
+            $isLaunchApiSuccess = is_array($responseArray) && isset($responseArray[0]) && is_string($responseArray[0]) && $responseArray[0] !== '';
             if ($isLaunchApiSuccess) {
                 return new TrustedURI($responseArray[0]);
             }
@@ -210,18 +214,18 @@ class Impl implements Rest
      * @inheritDoc
      * @throws Exception
      * @throws QualifiedResponseError
-     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws GuzzleException
      */
     public function getReviewUrl(
-        \ilObjTest $test,
+        ilObjTest $test,
         URI $testLaunchUrl,
         URI $testUrl
     ) : URI {
         $responseBody = $this->request($test, $testLaunchUrl, $testUrl);
 
-        if (is_string($responseBody) && strlen($responseBody) > 0) {
-            $responseArray = json_decode($responseBody, true);
-            $isReviewApiSuccess = is_array($responseArray) && isset($responseArray[1]) && is_string($responseArray[1]) && strlen($responseArray[1]) > 0;
+        if ($responseBody !== '') {
+            $responseArray = json_decode($responseBody, true, 512, JSON_THROW_ON_ERROR);
+            $isReviewApiSuccess = is_array($responseArray) && isset($responseArray[1]) && is_string($responseArray[1]) && $responseArray[1] !== '';
             if ($isReviewApiSuccess) {
                 return new TrustedURI($responseArray[1]);
             }
@@ -231,12 +235,12 @@ class Impl implements Rest
     }
 
     /**
-     * @param \ilObjTest $test
+     * @param ilObjTest $test
      * @param string $regexQuotedBaseUrlWithScript
      * @param URI $testLaunchUrl
      * @return string
      */
-    private function buildExamStartRegex(\ilObjTest $test, string $regexQuotedBaseUrlWithScript, URI $testLaunchUrl) : string
+    private function buildExamStartRegex(ilObjTest $test, string $regexQuotedBaseUrlWithScript, URI $testLaunchUrl) : string
     {
         $startParameterNames = ['ref_id', 'cmd'];
         $startParameterValues = [$test->getRefId(), 'TestLaunchAndReview\.start'];
@@ -248,49 +252,49 @@ class Impl implements Rest
     }
 
     /**
-     * @param \ilObjTest $test
+     * @param ilObjTest $test
      * @return string
      */
-    private function buildExamTakeRegex(\ilObjTest $test) : string
+    private function buildExamTakeRegex(ilObjTest $test) : string
     {
         $parameterValues = [
-            \ilTestPlayerCommands::START_TEST,
-            \ilTestPlayerCommands::INIT_TEST,
-            \ilTestPlayerCommands::START_PLAYER,
-            \ilTestPlayerCommands::RESUME_PLAYER,
+            ilTestPlayerCommands::START_TEST,
+            ilTestPlayerCommands::INIT_TEST,
+            ilTestPlayerCommands::START_PLAYER,
+            ilTestPlayerCommands::RESUME_PLAYER,
             //\ilTestPlayerCommands::DISPLAY_ACCESS_CODE,
             //\ilTestPlayerCommands::ACCESS_CODE_CONFIRMED,
-            \ilTestPlayerCommands::SHOW_QUESTION,
-            \ilTestPlayerCommands::PREVIOUS_QUESTION,
-            \ilTestPlayerCommands::NEXT_QUESTION,
-            \ilTestPlayerCommands::EDIT_SOLUTION,
+            ilTestPlayerCommands::SHOW_QUESTION,
+            ilTestPlayerCommands::PREVIOUS_QUESTION,
+            ilTestPlayerCommands::NEXT_QUESTION,
+            ilTestPlayerCommands::EDIT_SOLUTION,
             //\ilTestPlayerCommands::MARK_QUESTION,
             //\ilTestPlayerCommands::MARK_QUESTION_SAVE,
             //\ilTestPlayerCommands::UNMARK_QUESTION,
             //\ilTestPlayerCommands::UNMARK_QUESTION_SAVE,
-            \ilTestPlayerCommands::SUBMIT_INTERMEDIATE_SOLUTION,
-            \ilTestPlayerCommands::SUBMIT_SOLUTION,
-            \ilTestPlayerCommands::SUBMIT_SOLUTION_AND_NEXT,
-            \ilTestPlayerCommands::REVERT_CHANGES,
+            ilTestPlayerCommands::SUBMIT_INTERMEDIATE_SOLUTION,
+            ilTestPlayerCommands::SUBMIT_SOLUTION,
+            ilTestPlayerCommands::SUBMIT_SOLUTION_AND_NEXT,
+            ilTestPlayerCommands::REVERT_CHANGES,
             //\ilTestPlayerCommands::DETECT_CHANGES,
             //\ilTestPlayerCommands::DISCARD_SOLUTION,
-            \ilTestPlayerCommands::SKIP_QUESTION,
-            \ilTestPlayerCommands::SHOW_INSTANT_RESPONSE,
+            ilTestPlayerCommands::SKIP_QUESTION,
+            ilTestPlayerCommands::SHOW_INSTANT_RESPONSE,
             //\ilTestPlayerCommands::CONFIRM_HINT_REQUEST,
             //\ilTestPlayerCommands::SHOW_REQUESTED_HINTS_LIST,
-            \ilTestPlayerCommands::QUESTION_SUMMARY,
+            ilTestPlayerCommands::QUESTION_SUMMARY,
             //\ilTestPlayerCommands::QUESTION_SUMMARY_INC_OBLIGATIONS,
             //\ilTestPlayerCommands::QUESTION_SUMMARY_OBLIGATIONS_ONLY,
-            \ilTestPlayerCommands::TOGGLE_SIDE_LIST,
-            \ilTestPlayerCommands::SHOW_QUESTION_SELECTION,
+            ilTestPlayerCommands::TOGGLE_SIDE_LIST,
+            ilTestPlayerCommands::SHOW_QUESTION_SELECTION,
             //\ilTestPlayerCommands::UNFREEZE_ANSWERS,
             //\ilTestPlayerCommands::AUTO_SAVE,
             //\ilTestPlayerCommands::REDIRECT_ON_TIME_LIMIT,
-            \ilTestPlayerCommands::SUSPEND_TEST,
-            \ilTestPlayerCommands::FINISH_TEST,
-            \ilTestPlayerCommands::AFTER_TEST_PASS_FINISHED,
-            \ilTestPlayerCommands::BACK_TO_INFO_SCREEN,
-            \ilTestPlayerCommands::BACK_FROM_FINISHING,
+            ilTestPlayerCommands::SUSPEND_TEST,
+            ilTestPlayerCommands::FINISH_TEST,
+            ilTestPlayerCommands::AFTER_TEST_PASS_FINISHED,
+            ilTestPlayerCommands::BACK_TO_INFO_SCREEN,
+            ilTestPlayerCommands::BACK_FROM_FINISHING,
             'show',
             $test->getRefId(),
         ];
@@ -300,12 +304,12 @@ class Impl implements Rest
             $test->getRefId(),
         ];
 
-        $parameterValues[] = 'iltestsubmissionreviewgui';
-        $parameterValues[] = 'iltestpasswordprotectiongui';
+        $parameterValues[] = strtolower(ilTestSubmissionReviewGUI::class);
+        $parameterValues[] = strtolower(ilTestPasswordProtectionGUI::class);
         if ($test->isRandomTest()) {
-            $parameterValues[] = 'iltestplayerrandomquestionsetgui';
+            $parameterValues[] = strtolower(ilTestPlayerRandomQuestionSetGUI::class);
         } elseif ($test->isFixedTest()) {
-            $parameterValues[] = 'iltestplayerfixedquestionsetgui';
+            $parameterValues[] = strtolower(ilTestPlayerFixedQuestionSetGUI::class);
         }
 
         $parameterNames = [
@@ -315,9 +319,7 @@ class Impl implements Rest
             'cmdClass',
         ];
 
-        $this->logger->info(sprintf(
-            "Initiating Proctorio API call ..."
-        ));
+        $this->logger->info("Initiating Proctorio API call ...");
 
         $takeRegex = '(.*?([\?&]';
         $takeRegex .= '(' . implode('|', $parameterNames) . ')=(' . implode('|', $parameterValues) . ')';
@@ -327,19 +329,19 @@ class Impl implements Rest
     }
 
     /**
-     * @param \ilObjTest $test
+     * @param ilObjTest $test
      * @return string
      */
-    private function buildExamEndRegex(\ilObjTest $test) : string
+    private function buildExamEndRegex(ilObjTest $test) : string
     {
         $evaluationParameterNames = ['ref_id', 'cmdClass'];
-        $evaluationParameterValues = [$test->getRefId(), 'iltestevaluationgui'];
+        $evaluationParameterValues = [$test->getRefId(), strtolower(ilTestEvaluationGUI::class)];
         $endRegexEval = '((.*?([\?&]';
         $endRegexEval .= '(' . implode('|', $evaluationParameterNames) . ')=(' . implode('|', $evaluationParameterValues) . ')';
         $endRegexEval .= ')){2})';
 
         $infoParameterNames = ['ref_id', 'cmdClass', 'cmd'];
-        $infoParameterValues = [$test->getRefId(), 'ilobjtestgui', 'redirectToInfoScreen'];
+        $infoParameterValues = [$test->getRefId(), strtolower(ilObjTestGUI::class), 'redirectToInfoScreen'];
         $endRegexInfo = '((.*?([\?&]';
         $endRegexInfo .= '(' . implode('|', $infoParameterNames) . ')=(' . implode('|', $infoParameterValues) . ')';
         $endRegexInfo .= ')){3})';
@@ -358,22 +360,22 @@ class Impl implements Rest
     }
 
     /**
-     * @param \ilObjTest $test
-     * @param array $endRegexParts
+     * @param ilObjTest $test
+     * @param string[] $endRegexParts
      */
-    private function appendRedirectUrlToExamEndRegex(\ilObjTest $test, array &$endRegexParts) : void
+    private function appendRedirectUrlToExamEndRegex(ilObjTest $test, array &$endRegexParts) : void
     {
         $redirectMode = (int) $test->getRedirectionMode();
         $redirectUrl = $test->getRedirectionUrl();
 
         if (
             is_string($redirectUrl) &&
-            strlen($redirectUrl) > 0
-            && in_array($redirectMode, [REDIRECT_ALWAYS, REDIRECT_KIOSK])
+            $redirectUrl !== ''
+            && in_array($redirectMode, [REDIRECT_ALWAYS, REDIRECT_KIOSK], true)
         ) {
             $doAppend = false;
 
-            if ($redirectMode == REDIRECT_KIOSK) {
+            if ($redirectMode === REDIRECT_KIOSK) {
                 if ($test->getKioskMode()) {
                     $doAppend = true;
                 }
@@ -384,9 +386,9 @@ class Impl implements Rest
             if ($doAppend) {
                 $urlParts = parse_url($redirectUrl);
 
-                if (is_string($urlParts['query']) && strlen($urlParts['query']) > 0) {
+                if (is_string($urlParts['query']) && $urlParts['query'] !== '') {
                     $endRegexParts[] = '(.*?' . preg_quote($urlParts['query'], '/') . ')';
-                } elseif (is_string($urlParts['path']) && strlen($urlParts['path']) > 0) {
+                } elseif (is_string($urlParts['path']) && $urlParts['path'] !== '') {
                     $endRegexParts[] = '(.*?' . preg_quote($urlParts['path'], '/') . ')';
                 } else {
                     $endRegexParts[] = '(.*?' . preg_quote($urlParts['host'], '/') . ')';
@@ -396,18 +398,22 @@ class Impl implements Rest
     }
 
     /**
-     * @param \ilObjTest $test
-     * @param array $endRegexParts
+     * @param ilObjTest $test
+     * @param string[] $endRegexParts
      */
-    private function appendFinalStatementUrlToExamEndRegex(\ilObjTest $test, array &$endRegexParts)
+    private function appendFinalStatementUrlToExamEndRegex(ilObjTest $test, array &$endRegexParts) : void
     {
         if ($test->getShowFinalStatement()) {
             $finalStatementAndItemIntroParameterNames = ['cmd'];
-            $finalStatementAndItemIntroValues = [\ilTestPlayerCommands::SHOW_FINAL_STATMENT];
+            $finalStatementAndItemIntroValues = [ilTestPlayerCommands::SHOW_FINAL_STATMENT];
             $endRegexFinalStatementAndItemIntro = '((.*?([\?&]';
-            $endRegexFinalStatementAndItemIntro .= '(' . implode('|',
-                    $finalStatementAndItemIntroParameterNames) . ')=(' . implode('|',
-                    $finalStatementAndItemIntroValues) . ')';
+            $endRegexFinalStatementAndItemIntro .= '(' . implode(
+                '|',
+                $finalStatementAndItemIntroParameterNames
+            ) . ')=(' . implode(
+                '|',
+                $finalStatementAndItemIntroValues
+            ) . ')';
             $endRegexFinalStatementAndItemIntro .= ')){1})';
 
             $endRegexParts[] = $endRegexFinalStatementAndItemIntro;

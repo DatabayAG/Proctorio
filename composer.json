@@ -1,7 +1,9 @@
 {
   "require": {
-    "php": "^7.2.0",
-    "guzzlehttp/guzzle": "^6.4"
+    "php": ">=7.3 <8.0",
+    "ext-json": "*",
+    "ext-dom": "*",
+    "guzzlehttp/guzzle": "^7.4"
   },
   "autoload": {
     "psr-4" : { "ILIAS\\Plugin\\Proctorio\\" : "./classes" },
@@ -9,8 +11,9 @@
     "exclude-from-classmap": []
   },
   "require-dev": {
-    "captainhook/plugin-composer": "^5.1",
-    "friendsofphp/php-cs-fixer": "^2.16"
+    "roave/security-advisories": "dev-latest",
+    "captainhook/plugin-composer": "^5.3",
+    "friendsofphp/php-cs-fixer": "^3.4"
   },
   "config": {
     "optimize-autoloader": true,

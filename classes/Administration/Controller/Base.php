@@ -3,37 +3,41 @@
 
 namespace ILIAS\Plugin\Proctorio\Administration\Controller;
 
+use ilCtrl;
+use ilGlobalTemplateInterface;
 use ILIAS\Plugin\Proctorio\Administration\GeneralSettings\Settings;
+use ilLanguage;
+use ilObjectDataCache;
+use ilObjUser;
+use ilPluginConfigGUI;
+use ilProctorioPlugin;
+use ilRbacReview;
 
 /**
  * Class Base
  * @package ILIAS\Plugin\Proctorio\Administration\Controller
  * @author  Michael Jansen <mjansen@databay.de>
  */
-abstract class Base extends \ilPluginConfigGUI
+abstract class Base extends ilPluginConfigGUI
 {
     /** @var Settings */
     protected $settings;
-    /** @var \ilCtrl */
+    /** @var ilCtrl */
     protected $ctrl;
-    /** @var \ilLanguage */
+    /** @var ilLanguage */
     protected $lng;
-    /** @var \ilTemplate */
+    /** @var ilGlobalTemplateInterface */
     protected $pageTemplate;
-    /** @var \ilObjUser */
+    /** @var ilObjUser */
     protected $user;
-    /** @var \ilProctorioPlugin */
+    /** @var ilProctorioPlugin */
     protected $plugin_object;
-    /** @var \ilRbacReview */
+    /** @var ilRbacReview */
     protected $rbacReview;
-    /** @var \ilObjectDataCache */
+    /** @var ilObjectDataCache */
     protected $objectCache;
 
-    /**
-     * Base constructor.
-     * @param \ilProctorioPlugin $plugin_object
-     */
-    public function __construct(\ilProctorioPlugin $plugin_object = null)
+    public function __construct(ilProctorioPlugin $plugin_object = null)
     {
         global $DIC;
 
@@ -49,7 +53,7 @@ abstract class Base extends \ilPluginConfigGUI
     /**
      * @param string $cmd
      */
-    public function performCommand($cmd)
+    public function performCommand($cmd) : void
     {
         global $DIC;
 
@@ -66,8 +70,5 @@ abstract class Base extends \ilPluginConfigGUI
         }
     }
 
-    /**
-     * @return string
-     */
     abstract protected function getDefaultCommand() : string;
 }

@@ -6,6 +6,9 @@ namespace ILIAS\Plugin\Proctorio\AccessControl\Handler;
 use ILIAS\Plugin\Proctorio\AccessControl\AccessHandler;
 use ILIAS\Plugin\Proctorio\AccessControl\Acl;
 use ILIAS\Plugin\Proctorio\Administration\GeneralSettings\Settings;
+use ilObjTest;
+use ilObjUser;
+use ilRbacReview;
 
 /**
  * Class RoleBased
@@ -14,9 +17,9 @@ use ILIAS\Plugin\Proctorio\Administration\GeneralSettings\Settings;
  */
 class RoleBased implements AccessHandler
 {
-    /** @var \ilObjUser */
+    /** @var ilObjUser */
     private $actor;
-    /** @var \ilRbacReview */
+    /** @var ilRbacReview */
     private $rbacReview;
     /** @var Acl */
     private $acl;
@@ -25,17 +28,10 @@ class RoleBased implements AccessHandler
     /** @var int[] */
     protected $assignedGlobalRoles = [];
 
-    /**
-     * RoleBasedAccessHandler constructor.
-     * @param \ilObjUser    $actor
-     * @param Settings      $settings
-     * @param \ilRbacReview $rbacReview
-     * @param Acl           $acl
-     */
     public function __construct(
-        \ilObjUser $actor,
+        ilObjUser $actor,
         Settings $settings,
-        \ilRbacReview $rbacReview,
+        ilRbacReview $rbacReview,
         Acl $acl
     ) {
         $this->actor = $actor;
@@ -46,11 +42,7 @@ class RoleBased implements AccessHandler
         $this->assignedGlobalRoles = $this->rbacReview->assignedGlobalRoles($this->actor->getId());
     }
 
-    /**
-     * @param \ilObjUser $actor
-     * @return self
-     */
-    public function withActor(\ilObjUser $actor) : AccessHandler
+    public function withActor(ilObjUser $actor) : AccessHandler
     {
         $clone = clone $this;
         $clone->actor = $actor;
@@ -59,19 +51,11 @@ class RoleBased implements AccessHandler
         return $clone;
     }
 
-    /**
-     * @return bool
-     */
     private function isActorAnonymous() : bool
     {
         return $this->actor->isAnonymous() || (int) $this->actor->getId() === 0;
     }
 
-    /**
-     * @param string $resource
-     * @param string $privilege
-     * @return bool
-     */
     private function hasAccess(string $resource, string $privilege) : bool
     {
         $hasAccess = false;
@@ -89,34 +73,22 @@ class RoleBased implements AccessHandler
         return $hasAccess;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function mayTakeTests(\ilObjTest $test) : bool
+    public function mayTakeTests(ilObjTest $test) : bool
     {
         return !$this->isActorAnonymous();
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function mayReadTestReviews(\ilObjTest $test) : bool
+    public function mayReadTestReviews(ilObjTest $test) : bool
     {
         return !$this->isActorAnonymous() && $this->hasAccess('exam_review', 'read');
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function mayReadTestSettings(\ilObjTest $test) : bool
+    public function mayReadTestSettings(ilObjTest $test) : bool
     {
         return !$this->isActorAnonymous() && $this->hasAccess('exam_settings', 'read');
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function mayWriteTestSettings(\ilObjTest $test) : bool
+    public function mayWriteTestSettings(ilObjTest $test) : bool
     {
         return !$this->isActorAnonymous() && $this->hasAccess('exam_settings', 'write');
     }

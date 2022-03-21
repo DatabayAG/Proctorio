@@ -4,7 +4,8 @@
 namespace ILIAS\Plugin\Proctorio\AccessControl\Handler;
 
 use ILIAS\Plugin\Proctorio\AccessControl;
-use ILIAS\Plugin\Proctorio\Entry\Model;
+use ilObjTest;
+use ilObjUser;
 
 /**
  * Class Cached
@@ -15,24 +16,15 @@ class Cached implements AccessControl\AccessHandler
 {
     /** @var AccessControl\AccessHandler */
     private $origin;
-
     /** @var array */
     private $cache = [];
 
-    /**
-     * Cached constructor.
-     * @param AccessControl\AccessHandler $origin
-     */
-    public function __construct(
-        AccessControl\AccessHandler $origin
-    ) {
+    public function __construct(AccessControl\AccessHandler $origin)
+    {
         $this->origin = $origin;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function withActor(\ilObjUser $actor) : AccessControl\AccessHandler
+    public function withActor(ilObjUser $actor) : AccessControl\AccessHandler
     {
         $clone = clone $this;
         $clone->origin = $clone->origin->withActor($actor);
@@ -41,51 +33,23 @@ class Cached implements AccessControl\AccessHandler
         return $clone;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function mayTakeTests(\ilObjTest $test) : bool
+    public function mayTakeTests(ilObjTest $test) : bool
     {
-        if (isset($this->cache[__METHOD__])) {
-            return $this->cache[__METHOD__];
-        }
-
-        return ($this->cache[__METHOD__] = $this->origin->mayTakeTests($test));
+        return $this->cache[__METHOD__] ?? ($this->cache[__METHOD__] = $this->origin->mayTakeTests($test));
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function mayReadTestReviews(\ilObjTest $test) : bool
+    public function mayReadTestReviews(ilObjTest $test) : bool
     {
-        if (isset($this->cache[__METHOD__])) {
-            return $this->cache[__METHOD__];
-        }
-
-        return ($this->cache[__METHOD__] = $this->origin->mayReadTestReviews($test));
+        return $this->cache[__METHOD__] ?? ($this->cache[__METHOD__] = $this->origin->mayReadTestReviews($test));
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function mayReadTestSettings(\ilObjTest $test) : bool
+    public function mayReadTestSettings(ilObjTest $test) : bool
     {
-        if (isset($this->cache[__METHOD__])) {
-            return $this->cache[__METHOD__];
-        }
-
-        return ($this->cache[__METHOD__] = $this->origin->mayReadTestSettings($test));
+        return $this->cache[__METHOD__] ?? ($this->cache[__METHOD__] = $this->origin->mayReadTestSettings($test));
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function mayWriteTestSettings(\ilObjTest $test) : bool
+    public function mayWriteTestSettings(ilObjTest $test) : bool
     {
-        if (isset($this->cache[__METHOD__])) {
-            return $this->cache[__METHOD__];
-        }
-
-        return ($this->cache[__METHOD__] = $this->origin->mayWriteTestSettings($test));
+        return $this->cache[__METHOD__] ?? ($this->cache[__METHOD__] = $this->origin->mayWriteTestSettings($test));
     }
 }

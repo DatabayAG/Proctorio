@@ -6,7 +6,7 @@ namespace ILIAS\Plugin\Proctorio\AccessControl\Exception;
 /**
  * Class PermissionRestricted
  * @package ILIAS\Plugin\Proctorio\AccessControl\Exception
- * @author Ingmar Szmais <iszmais@databay.de>
+ * @author Michael Jansen <mjansen@databay.de>
  */
 class PermissionRestricted extends PermissionDenied
 {

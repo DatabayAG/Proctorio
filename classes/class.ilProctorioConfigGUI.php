@@ -19,15 +19,7 @@ class ilProctorioConfigGUI extends Controller\Base
     /**
      * @inheritDoc
      */
-    public function __construct(\ilProctorioPlugin $plugin_object = null)
-    {
-        parent::__construct($plugin_object);
-    }
-
-    /**
-     * @param string $cmd
-     */
-    public function performCommand($cmd)
+    public function performCommand($cmd) : void
     {
         $this->acl = $GLOBALS['DIC']['plugin.proctorio.acl'];
         parent::performCommand($cmd);
@@ -41,23 +33,17 @@ class ilProctorioConfigGUI extends Controller\Base
         return 'showSettings';
     }
 
-    /**
-     *
-     */
     public function showSettings() : void
     {
         $form = new Form($this->plugin_object, $this, $this->settings, $this->objectCache, $this->rbacReview, $this->acl);
         $this->pageTemplate->setContent($form->getHTML());
     }
 
-    /**
-     *
-     */
     public function saveSettings() : void
     {
         $form = new Form($this->plugin_object, $this, $this->settings, $this->objectCache, $this->rbacReview, $this->acl);
         if ($form->saveObject()) {
-            \ilUtil::sendSuccess($this->lng->txt('saved_successfully'), true);
+            ilUtil::sendSuccess($this->lng->txt('saved_successfully'), true);
             $this->ctrl->redirect($this);
         }
 

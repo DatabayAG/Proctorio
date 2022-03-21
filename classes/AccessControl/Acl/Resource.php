@@ -9,8 +9,5 @@ namespace ILIAS\Plugin\Proctorio\AccessControl\Acl;
  */
 interface Resource
 {
-    /**
-     * @return string
-     */
     public function getResourceId() : string;
 }

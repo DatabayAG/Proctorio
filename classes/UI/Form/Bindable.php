@@ -3,6 +3,8 @@
 
 namespace ILIAS\Plugin\Proctorio\UI\Form;
 
+use ilPropertyFormGUI;
+
 /**
  * Interface Bindable
  * @package ILIAS\Plugin\Proctorio\UI\Form
@@ -10,19 +12,13 @@ namespace ILIAS\Plugin\Proctorio\UI\Form;
  */
 interface Bindable
 {
-    /**
-     * @param \ilPropertyFormGUI $form
-     */
-    public function bindForm(\ilPropertyFormGUI $form);
+    public function bindForm(ilPropertyFormGUI $form) : void;
 
-    /**
-     *
-     */
-    public function onFormSaved();
+    public function onFormSaved() : void;
 
     /**
      * A key value map of form values mapped to the respective element name
-     * @return array
+     * @return array<string, mixed>
      */
     public function toArray() : array;
 }

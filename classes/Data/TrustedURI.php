@@ -12,23 +12,14 @@ use ILIAS\Data\URI;
  */
 class TrustedURI extends URI
 {
-    /**
-     * @var string
-     */
-    private $uri = '';
+    /** @var string */
+    private $uri;
 
-    /**
-     * TrustedURI constructor.
-     * @param string $uri_string
-     */
     public function __construct(string $uri_string)
     {
         $this->uri = $uri_string;
     }
 
-    /**
-     * @return string
-     */
     public function getUri() : string
     {
         return $this->uri;

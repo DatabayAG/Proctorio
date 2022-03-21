@@ -19,9 +19,6 @@ class ilProctorioUIHookGUI extends ilUIHookPluginGUI
     /** @var ViewModifier[]|null */
     protected static $modifiers = null;
 
-    /**
-     * ilProctorioUIHookGUI constructor.
-     */
     public function __construct()
     {
         global $DIC;
@@ -47,18 +44,12 @@ class ilProctorioUIHookGUI extends ilUIHookPluginGUI
         }
 
         $this->dic->ui()->mainTemplate()->setContent($response);
-        $this->dic->ui()->mainTemplate()->show();
+        $this->dic->ui()->mainTemplate()->printToStdout();
     }
 
-    /**
-     *
-     */
     private function initModifiers() : void
     {
-        if (
-            !isset($this->dic['tpl']) ||
-            !isset($this->dic['ilToolbar'])
-        ) {
+        if (!isset($this->dic['tpl'], $this->dic['ilToolbar'], $this->dic['refinery'])) {
             return;
         }
 
@@ -70,13 +61,13 @@ class ilProctorioUIHookGUI extends ilUIHookPluginGUI
         $urlParts = parse_url($phpSelf);
         $script = basename($phpSelf);
 
-        $isLiveVotinRequest = (
-            strlen($phpSelf) > 0 &&
+        $isLiveVotingRequest = (
+            $phpSelf !== '' &&
             is_array($urlParts) &&
             isset($urlParts['path']) &&
             strpos($urlParts['path'], '/LiveVoting/') !== false
         );
-        if ($isLiveVotinRequest) {
+        if ($isLiveVotingRequest) {
             return;
         }
 
@@ -95,7 +86,7 @@ class ilProctorioUIHookGUI extends ilUIHookPluginGUI
     /**
      * @inheritDoc
      */
-    public function getHTML($a_comp, $a_part, $a_par = [])
+    public function getHTML($a_comp, $a_part, $a_par = []) : array
     {
         $unmodified = ['mode' => ilUIHookPluginGUI::KEEP, 'html' => ''];
 
@@ -115,7 +106,7 @@ class ilProctorioUIHookGUI extends ilUIHookPluginGUI
     /**
      * @inheritDoc
      */
-    public function modifyGUI($a_comp, $a_part, $a_par = [])
+    public function modifyGUI($a_comp, $a_part, $a_par = []) : void
     {
         parent::modifyGUI($a_comp, $a_part, $a_par);
 

@@ -15,8 +15,8 @@ in this document are to be interpreted as described in
 
 ## Requirements
 
-* PHP: [![Minimum PHP Version](https://img.shields.io/badge/Minimum_PHP-7.2.x-blue.svg)](https://php.net/) [![Maximum PHP Version](https://img.shields.io/badge/Maximum_PHP-7.2.x-blue.svg)](https://php.net/)
-* ILIAS: [![Minimum ILIAS Version](https://img.shields.io/badge/Minimum_ILIAS-5.4.0-orange.svg)](https://ilias.de/) [![Maximum ILIAS Version](https://img.shields.io/badge/Maximum_ILIAS-5.4.999-orange.svg)](https://ilias.de/)
+* PHP: [![Minimum PHP Version](https://img.shields.io/badge/Minimum_PHP-7.3.x-blue.svg)](https://php.net/) [![Maximum PHP Version](https://img.shields.io/badge/Maximum_PHP-7.4.x-blue.svg)](https://php.net/)
+* ILIAS: [![Minimum ILIAS Version](https://img.shields.io/badge/Minimum_ILIAS-7.0-orange.svg)](https://ilias.de/) [![Maximum ILIAS Version](https://img.shields.io/badge/Maximum_ILIAS-7.999-orange.svg)](https://ilias.de/)
 
 ## Installation
 
@@ -60,8 +60,9 @@ cookie policy of modern browsers.
 As long as the ILIAS core does not support the configuration of this cookie
 flag you'll have to patch the code fragments where ILIAS sets cookie parameters:
 
-\ilInitialisation::setSessionCookieParams:
+`\ilInitialisation::setSessionCookieParams`:
 ```php
+<?php
 // [...]
 protected static function setSessionCookieParams()
 {
@@ -75,25 +76,14 @@ protected static function setSessionCookieParams()
         $cookie_secure = !$ilSetting->get('https', 0) && ilHTTPS::getInstance()->isDetected();
         define('IL_COOKIE_SECURE', $cookie_secure); // Default Value
         // proctorio-patch: begin
-        if (version_compare(PHP_VERSION, '7.3', '>=')) {
-            session_set_cookie_params([
-                'lifetime' => IL_COOKIE_EXPIRE,
-                'path' => IL_COOKIE_PATH,
-                'domain' => IL_COOKIE_DOMAIN,
-                'secure' => IL_COOKIE_SECURE,
-                'httponly' => IL_COOKIE_HTTPONLY,
-                'samesite' => 'None'
-            ]);
-        } else {
-            $path = IL_COOKIE_PATH . ';samesite=None'; // With PHP >= 7.3 this could be done via the options array
-            session_set_cookie_params(
-                IL_COOKIE_EXPIRE,
-                $path,
-                IL_COOKIE_DOMAIN,
-                IL_COOKIE_SECURE,
-                IL_COOKIE_HTTPONLY
-            );
-        }
+        session_set_cookie_params([
+            'lifetime' => IL_COOKIE_EXPIRE,
+            'path' => IL_COOKIE_PATH,
+            'domain' => IL_COOKIE_DOMAIN,
+            'secure' => IL_COOKIE_SECURE,
+            'httponly' => IL_COOKIE_HTTPONLY,
+            'samesite' => 'None'
+        ]);
         // proctorio-patch: end
     }
     // proctorio-patch: begin
@@ -103,41 +93,30 @@ protected static function setSessionCookieParams()
 // [...]
 ```
 
-\ilUtil::setCookie:
+`\ilUtil::setCookie`:
 ```php
+<?php
 // [...]
 // proctorio-patch: begin
-if (version_compare(PHP_VERSION, '7.3', '>=')) {
-    setcookie(
-        $a_cookie_name,
-        $a_cookie_value,
-        [
-            'expires' => $expire,
-            'path' => IL_COOKIE_PATH,
-            'domain' => IL_COOKIE_DOMAIN,
-            'secure' => $secure,
-            'httponly' => IL_COOKIE_HTTPONLY,
-            'samesite' => 'None'
-        ]
-    );
-} else {
-    $path = IL_COOKIE_PATH . ';samesite=None'; // With PHP >= 7.3 this could be done via the options array
-    setcookie(
-        $a_cookie_name,
-        $a_cookie_value,
-        $expire,
-        $path,
-        IL_COOKIE_DOMAIN,
-        $secure,
-        IL_COOKIE_HTTPONLY
-    );
-}
+setcookie(
+    $a_cookie_name,
+    $a_cookie_value,
+    [
+        'expires' => $expire,
+        'path' => IL_COOKIE_PATH,
+        'domain' => IL_COOKIE_DOMAIN,
+        'secure' => $secure,
+        'httponly' => IL_COOKIE_HTTPONLY,
+        'samesite' => 'None'
+    ]
+);
 // proctorio-patch: end
 // [...]
 ```
 
-\ilAuthSession::init:
+`\ilAuthSession::init`:
 ```php
+<?php
 // [...]
 public function init()
 {
@@ -167,36 +146,22 @@ public function init()
 // [...]
 ```
 
-\ilHTTPS::enableSecureCookies
+`\ilHTTPS::enableSecureCookies`:
 ```php
+<?php
 // [...]
 // proctorio-patch: begin
-if (version_compare(PHP_VERSION, '7.3', '>=')) {
-    session_set_cookie_params([
-        'lifetime' => IL_COOKIE_EXPIRE,
-        'path' => IL_COOKIE_PATH,
-        'domain' => IL_COOKIE_DOMAIN,
-        'secure' => IL_COOKIE_SECURE,
-        'httponly' => true,
-        'samesite' => 'None'
-    ]);
-} else {
-    $path = IL_COOKIE_PATH . '; samesite=None'; // With PHP >= 7.3 this could be done via the options array
-    session_set_cookie_params(
-        IL_COOKIE_EXPIRE,
-        $path,
-        IL_COOKIE_DOMAIN,
-        true,
-        IL_COOKIE_HTTPONLY
-    );
-}
+session_set_cookie_params([
+    'lifetime' => IL_COOKIE_EXPIRE,
+    'path' => IL_COOKIE_PATH,
+    'domain' => IL_COOKIE_DOMAIN,
+    'secure' => IL_COOKIE_SECURE,
+    'httponly' => true,
+    'samesite' => 'None'
+]);
 // proctorio-patch: end
 // [...]
 ```
-
-With PHP >= 7.3 the *SameSite* flag could be passed in the options array instead, see:
-* https://www.php.net/manual/en/function.setcookie.php
-* https://www.php.net/manual/en/function.session-set-cookie-params
 
 ## License
 

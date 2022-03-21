@@ -4,6 +4,11 @@
 namespace ILIAS\Plugin\Proctorio\Frontend\Controller;
 
 use ILIAS\Plugin\Proctorio\Frontend\Form\TestSettings as TestSettingsForm;
+use iljQueryUtil;
+use ilObjectFactory;
+use ilObjTest;
+use ilObjTestGUI;
+use ilUtil;
 
 /**
  * Class TestSettings
@@ -12,31 +17,25 @@ use ILIAS\Plugin\Proctorio\Frontend\Form\TestSettings as TestSettingsForm;
  */
 class TestSettings extends RepositoryObject
 {
-    /** @var \ilObjTest */
+    /** @var ilObjTest */
     protected $test;
 
-    /**
-     * @inheritdoc
-     */
     public function getDefaultCommand() : string
     {
         return 'showSettingsCmd';
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getObjectGuiClass() : string
     {
-        return \ilObjTestGUI::class;
+        return ilObjTestGUI::class;
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
     protected function init() : void
     {
-        $this->pageTemplate->getStandardTemplate();
+        $this->pageTemplate->loadStandardTemplate();
 
         parent::init();
 
@@ -44,13 +43,17 @@ class TestSettings extends RepositoryObject
             $this->errorHandler->raiseError($this->lng->txt('permission_denied'), $this->errorHandler->MESSAGE);
         }
 
-        $this->test = \ilObjectFactory::getInstanceByRefId($this->getRefId());
+        $this->test = ilObjectFactory::getInstanceByRefId($this->getRefId());
+
+        iljQueryUtil::initjQuery($this->pageTemplate);
 
         $this->pageTemplate->addCss(
             $this->getCoreController()->getPluginObject()->getDirectory() . '/assets/css/styles.css'
         );
         $this->pageTemplate->addJavaScript(
-            $this->getCoreController()->getPluginObject()->getDirectory() . '/assets/js/main.js'
+            $this->getCoreController()->getPluginObject()->getDirectory() . '/assets/js/main.js',
+            true,
+            3
         );
 
         $this->drawHeader();
@@ -64,9 +67,6 @@ class TestSettings extends RepositoryObject
         }
     }
 
-    /**
-     * @return TestSettingsForm
-     */
     private function buildForm() : TestSettingsForm
     {
         $form = new TestSettingsForm(
@@ -89,9 +89,6 @@ class TestSettings extends RepositoryObject
         return $form;
     }
     
-    /**
-     * @return string
-     */
     public function showSettingsCmd() : string
     {
         $form = $this->buildForm();
@@ -100,9 +97,6 @@ class TestSettings extends RepositoryObject
         return $form->getHTML();
     }
 
-    /**
-     *
-     */
     public function saveSettingsCmd() : string
     {
         if (!$this->accessHandler->mayWriteTestSettings($this->test)) {
@@ -112,7 +106,7 @@ class TestSettings extends RepositoryObject
         $form = $this->buildForm();
         if ($form->checkInput()) {
             $this->service->saveConfigurationForTest($this->test, $form);
-            \ilUtil::sendSuccess($this->lng->txt('saved_successfully'), true);
+            ilUtil::sendSuccess($this->lng->txt('saved_successfully'), true);
 
             $this->ctrl->setParameter($this->getCoreController(), 'ref_id', $this->getRefId());
             $this->ctrl->redirect($this->getCoreController(), $this->getControllerName() . '.showSettings');

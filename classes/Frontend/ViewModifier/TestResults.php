@@ -3,6 +3,12 @@
 
 namespace ILIAS\Plugin\Proctorio\Frontend\ViewModifier;
 
+use ilLinkButton;
+use ilObjectFactory;
+use ilObjTest;
+use ilParticipantsTestResultsGUI;
+use ilUIHookPluginGUI;
+
 /**
  * Class TestResults
  * @package ILIAS\Plugin\Proctorio\Frontend\Controller
@@ -10,15 +16,12 @@ namespace ILIAS\Plugin\Proctorio\Frontend\ViewModifier;
  */
 class TestResults extends Base
 {
-    /** @var \ilObjTest */
+    /** @var ilObjTest */
     private $test;
 
-    /**
-     * @return bool
-     */
     private function isResultContext() : bool
     {
-        return $this->isCommandClass(\ilParticipantsTestResultsGUI::class);
+        return $this->isCommandClass(ilParticipantsTestResultsGUI::class);
     }
 
     /**
@@ -42,7 +45,7 @@ class TestResults extends Base
             return false;
         }
 
-        $this->test = \ilObjectFactory::getInstanceByRefId($this->getRefId());
+        $this->test = ilObjectFactory::getInstanceByRefId($this->getRefId());
         if (!$this->service->isTestSupported($this->test)) {
             return false;
         }
@@ -64,7 +67,7 @@ class TestResults extends Base
      */
     public function modifyHtml(string $component, string $part, array $parameters) : array
     {
-        $unmodified = ['mode' => \ilUIHookPluginGUI::KEEP, 'html' => ''];
+        $unmodified = ['mode' => ilUIHookPluginGUI::KEEP, 'html' => ''];
 
         $this->ctrl->setParameterByClass(
             get_class($this->getCoreController()),
@@ -78,7 +81,7 @@ class TestResults extends Base
             false,
             false
         );
-        $btn = \ilLinkButton::getInstance();
+        $btn = ilLinkButton::getInstance();
         $btn->setUrl($url);
         $btn->setCaption($this->getCoreController()->getPluginObject()->txt('btn_label_proctorio_review'), false);
         $this->toolbar->addButtonInstance($btn);

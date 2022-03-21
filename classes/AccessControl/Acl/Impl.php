@@ -5,6 +5,7 @@ namespace ILIAS\Plugin\Proctorio\AccessControl\Acl;
 
 use ILIAS\Plugin\Proctorio\AccessControl\Acl;
 use ILIAS\Plugin\Proctorio\AccessControl\Acl\Role\Registry;
+use InvalidArgumentException;
 
 /**
  * Class Impl
@@ -14,13 +15,13 @@ use ILIAS\Plugin\Proctorio\AccessControl\Acl\Role\Registry;
 class Impl implements Acl
 {
     /** Rule type: allow */
-    const TYPE_ALLOW = 'TYPE_ALLOW';
+    private const TYPE_ALLOW = 'TYPE_ALLOW';
     /** Rule type: deny */
-    const TYPE_DENY = 'TYPE_DENY';
+    private const TYPE_DENY = 'TYPE_DENY';
     /** Rule operation: add */
-    const OP_ADD = 'OP_ADD';
+    private const OP_ADD = 'OP_ADD';
     /** Rule operation: remove */
-    const OP_REMOVE = 'OP_REMOVE';
+    private const OP_REMOVE = 'OP_REMOVE';
 
     /** @var Registry */
     private $roleRegistry;
@@ -45,19 +46,11 @@ class Impl implements Acl
         'byResourceId' => []
     ];
 
-    /**
-     * Impl constructor.
-     * @param Registry $roleRegistry
-     */
     public function __construct(Registry $roleRegistry)
     {
         $this->roleRegistry = $roleRegistry;
     }
 
-    /**
-     * @param Role $role
-     * @return Impl
-     */
     public function addRole(Role $role) : Impl
     {
         $this->roleRegistry->add($role);
@@ -65,28 +58,16 @@ class Impl implements Acl
         return $this;
     }
 
-    /**
-     * @param string $role
-     * @return Role
-     */
     public function getRole(string $role) : Role
     {
         return $this->roleRegistry->get($role);
     }
 
-    /**
-     * @param string $role
-     * @return bool
-     */
     public function hasRole(string $role) : bool
     {
         return $this->roleRegistry->has($role);
     }
 
-    /**
-     * @param Resource $resource
-     * @return Impl
-     */
     public function addResource(Resource $resource) : Impl
     {
         $this->resources[$resource->getResourceId()] = [
@@ -99,7 +80,7 @@ class Impl implements Acl
     /**
      * @param mixed $resource
      * @return Resource
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     public function getResource($resource) : Resource
     {
@@ -110,7 +91,7 @@ class Impl implements Acl
         }
 
         if (!$this->hasResource($resource)) {
-            throw new \InvalidArgumentException("Resource '$resourceId' not found");
+            throw new InvalidArgumentException("Resource '$resourceId' not found");
         }
 
         return $this->resources[$resourceId]['instance'];
@@ -131,12 +112,6 @@ class Impl implements Acl
         return isset($this->resources[$resourceId]);
     }
 
-    /**
-     * @param string $role
-     * @param string $resource
-     * @param string $privilege
-     * @return Impl
-     */
     public function allow(
         string $role,
         string $resource,
@@ -145,14 +120,6 @@ class Impl implements Acl
         return $this->setRule(self::OP_ADD, self::TYPE_ALLOW, $role, $resource, $privilege);
     }
 
-    /**
-     * @param string $operation
-     * @param string $type
-     * @param string $role
-     * @param string $resource
-     * @param string $privilege
-     * @return Impl
-     */
     private function setRule(
         string $operation,
         string $type,
@@ -192,9 +159,9 @@ class Impl implements Acl
      * @return array
      */
     private function &getRules(
-        Resource $resource = null,
+        ?Resource $resource = null,
         Role $role = null,
-        $create = false
+        bool $create = false
     ) : array {
         $null = null;
         $nullRef = &$null;

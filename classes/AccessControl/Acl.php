@@ -12,12 +12,6 @@ use ILIAS\Plugin\Proctorio\AccessControl\Acl\Role;
  */
 interface Acl
 {
-    /**
-     * @param string $role
-     * @param string $resource
-     * @param string $privilege
-     * @return bool
-     */
     public function isAllowed(string $role, string $resource, string $privilege) : bool;
 
     /**

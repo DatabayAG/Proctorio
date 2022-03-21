@@ -3,41 +3,45 @@
 
 namespace ILIAS\Plugin\Proctorio\Administration\GeneralSettings\UI;
 
+use ilException;
+use ilFormPropertyGUI;
+use ilFormSectionHeaderGUI;
 use ILIAS\Plugin\Proctorio\UI\Form\Bindable;
 use ILIAS\Plugin\Proctorio\AccessControl\Acl;
+use ilMultiSelectInputGUI;
+use ilObjectDataCache;
+use ilProctorioPlugin;
+use ilPropertyFormGUI;
+use ilRbacReview;
+use ilTextInputGUI;
+use ilUtil;
 
 /**
  * Class Form
  * @package ILIAS\Plugin\Proctorio\Administration\GeneralSettings\UI
  * @author  Michael Jansen <mjansen@databay.de>
  */
-class Form extends \ilPropertyFormGUI
+class Form extends ilPropertyFormGUI
 {
-    /** @var \ilProctorioPlugin */
+    /** @var ilProctorioPlugin */
     private $plugin;
     /** @var object */
     private $cmdObject;
     /** @var Bindable */
     private $generalSettings;
-    /** @var \ilObjectDataCache */
+    /** @var ilObjectDataCache */
     private $objectCache;
-    /** @var \ilRbacReview */
+    /** @var ilRbacReview */
     protected $rbacReview;
     /** @var Acl */
     private $acl;
 
-    /**
-     * Form constructor.
-     * @param \ilProctorioPlugin $plugin
-     * @param object $cmdObject
-     * @param Bindable $generalSettings
-     */
     public function __construct(
-        \ilProctorioPlugin $plugin,
+        ilProctorioPlugin $plugin,
         $cmdObject,
         Bindable $generalSettings,
-        \ilObjectDataCache $objectCache,
-        \ilRbacReview $rbacReview,
+        ilObjectDataCache $objectCache,
+        ilRbacReview $rbacReview,
         Acl $acl
     ) {
         $this->plugin = $plugin;
@@ -51,16 +55,13 @@ class Form extends \ilPropertyFormGUI
         $this->initForm();
     }
 
-    /**
-     *
-     */
     protected function initForm() : void
     {
         $this->addCommandButton('saveSettings', $this->lng->txt('save'));
         $this->setFormAction($this->ctrl->getFormAction($this->cmdObject, 'saveSettings'));
         $this->setTitle($this->lng->txt('settings'));
         
-        $apiKey = new \ilTextInputGUI(
+        $apiKey = new ilTextInputGUI(
             $this->plugin->txt('api_key'),
             'api_key'
         );
@@ -68,7 +69,7 @@ class Form extends \ilPropertyFormGUI
         $apiKey->setRequired(true);
         $this->addItem($apiKey);
 
-        $apiSecret = new \ilTextInputGUI(
+        $apiSecret = new ilTextInputGUI(
             $this->plugin->txt('api_secret'),
             'api_secret'
         );
@@ -76,7 +77,7 @@ class Form extends \ilPropertyFormGUI
         $apiSecret->setRequired(true);
         $this->addItem($apiSecret);
 
-        $apiAccountRegion = new \ilTextInputGUI(
+        $apiAccountRegion = new ilTextInputGUI(
             $this->plugin->txt('api_region'),
             'api_region'
         );
@@ -84,7 +85,7 @@ class Form extends \ilPropertyFormGUI
         $apiAccountRegion->setRequired(true);
         $this->addItem($apiAccountRegion);
 
-        $apiBaseUrl = new \ilTextInputGUI(
+        $apiBaseUrl = new ilTextInputGUI(
             $this->plugin->txt('api_base_url'),
             'api_base_url'
         );
@@ -92,7 +93,7 @@ class Form extends \ilPropertyFormGUI
         $apiBaseUrl->setRequired(true);
         $this->addItem($apiBaseUrl);
 
-        $apiLaunchReviewEndpoint = new \ilTextInputGUI(
+        $apiLaunchReviewEndpoint = new ilTextInputGUI(
             $this->plugin->txt('api_launch_review_endpoint'),
             'api_launch_review_endpoint'
         );
@@ -101,20 +102,21 @@ class Form extends \ilPropertyFormGUI
         $apiLaunchReviewEndpoint->setValidationRegexp('/^(\/([\.A-Za-z0-9_-]+|\[[A-Za-z0-9_-]+\]))+$/');
         $this->addItem($apiLaunchReviewEndpoint);
         
-        $accessControlSection = new \ilFormSectionHeaderGUI();
+        $accessControlSection = new ilFormSectionHeaderGUI();
         $accessControlSection->setTitle($this->plugin->txt('header_access_control'));
         $this->addItem($accessControlSection);
 
         $roles = [];
         foreach ($this->rbacReview->getGlobalRoles() as $roleId) {
-            if ($roleId !== ANONYMOUS_ROLE_ID) {
+            $roleId = (int) $roleId;
+            if ($roleId !== (int) ANONYMOUS_ROLE_ID) {
                 $roles[$roleId] = $this->objectCache->lookupTitle($roleId);
             }
         }
         asort($roles);
 
         foreach ($this->acl->getRoles() as $role) {
-            $roleMapping = new \ilMultiSelectInputGUI(
+            $roleMapping = new ilMultiSelectInputGUI(
                 $this->plugin->txt('acl_role_' . $role->getRoleId()),
                 'role_mapping_' . $role->getRoleId()
             );
@@ -127,9 +129,9 @@ class Form extends \ilPropertyFormGUI
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function checkInput()
+    public function checkInput() : bool
     {
         $bool = parent::checkInput();
         if (!$bool) {
@@ -155,21 +157,18 @@ class Form extends \ilPropertyFormGUI
             }
 
             $formElement = $this->getItemByPostVar($formFieldId);
-            if (count($errors) > 0 && $formElement instanceof \ilFormPropertyGUI) {
+            if (count($errors) > 0 && $formElement instanceof ilFormPropertyGUI) {
                 $formElement->setAlert(implode(' ', $errors));
             }
         }
 
         if (!$valid) {
-            \ilUtil::sendFailure($this->lng->txt('form_input_not_valid'));
+            ilUtil::sendFailure($this->lng->txt('form_input_not_valid'));
         }
 
         return $valid;
     }
 
-    /**
-     * @return bool
-     */
     public function saveObject() : bool
     {
         if (!$this->fillObject()) {
@@ -181,16 +180,13 @@ class Form extends \ilPropertyFormGUI
             $this->generalSettings->bindForm($this);
             $this->generalSettings->onFormSaved();
             return true;
-        } catch (\ilException $e) {
-            \ilUtil::sendFailure($this->plugin->txt($e->getMessage()));
+        } catch (ilException $e) {
+            ilUtil::sendFailure($this->plugin->txt($e->getMessage()));
             $this->setValuesByPost();
             return false;
         }
     }
 
-    /**
-     * @return bool
-     */
     protected function fillObject() : bool
     {
         if (!$this->checkInput()) {
@@ -203,8 +199,8 @@ class Form extends \ilPropertyFormGUI
             $this->setValuesByArray(
                 $this->generalSettings->toArray()
             );
-        } catch (\ilException $e) {
-            \ilUtil::sendFailure($e->getMessage());
+        } catch (ilException $e) {
+            ilUtil::sendFailure($e->getMessage());
             $success = false;
         }
 

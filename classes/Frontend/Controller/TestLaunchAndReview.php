@@ -8,6 +8,21 @@ use ILIAS\Data\URI;
 use ILIAS\Plugin\Proctorio\Refinery\Transformation\UriToString;
 use ILIAS\Plugin\Proctorio\Webservice\Exception;
 use ILIAS\Plugin\Proctorio\Webservice\Exception\QualifiedResponseError;
+use iljQueryUtil;
+use ilLink;
+use ilLinkButton;
+use ilObjectFactory;
+use ilObjTest;
+use ilObjTestAccess;
+use ilObjTestGUI;
+use ilOrgUnitOperation;
+use ilRepositoryGUI;
+use ilTestPassesSelector;
+use ilTestPlayerFactory;
+use ilTestQuestionSetConfigFactory;
+use ilTestSession;
+use ilTestSessionFactory;
+use ilUIPluginRouterGUI;
 
 /**
  * Class TestLaunchAndReview
@@ -16,69 +31,51 @@ use ILIAS\Plugin\Proctorio\Webservice\Exception\QualifiedResponseError;
  */
 class TestLaunchAndReview extends RepositoryObject
 {
-    /** @var \ilObjTest */
+    /** @var ilObjTest */
     protected $test;
     /** @var string|null */
     private $sessionLockString;
-    /** @var \ilTestSession */
+    /** @var ilTestSession */
     private $testSession;
     /** @var string */
     private $testCommand = '';
-    /** @var \ilTestQuestionSetConfigFactory */
+    /** @var ilTestQuestionSetConfigFactory */
     private $testQuestionSetConfigFactory;
 
-    /**
-     * @inheritdoc
-     */
     public function getDefaultCommand() : string
     {
         return 'launchCmd';
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getObjectGuiClass() : string
     {
-        return \ilObjTestGUI::class;
+        return ilObjTestGUI::class;
     }
 
-    /**
-     *
-     */
     private function ensureInitialisedSessionLockString() : void
     {
-        if (!is_string($this->getSessionLockString()) || !strlen($this->getSessionLockString())) {
+        if (!is_string($this->getSessionLockString()) || $this->getSessionLockString() === '') {
             $this->setSessionLockString($this->buildSessionLockString());
         }
     }
 
-    /**
-     * @return string
-     */
     private function buildSessionLockString() : string
     {
         return md5($_COOKIE[session_name()] . time());
     }
 
-    /**
-     * @return string
-     */
     private function getSessionLockString() : ?string
     {
         return $this->sessionLockString;
     }
 
-    /**
-     * @param string $sessionLockString
-     */
     private function setSessionLockString(string $sessionLockString) : void
     {
         $this->sessionLockString = $sessionLockString;
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
     protected function init() : void
     {
@@ -88,7 +85,7 @@ class TestLaunchAndReview extends RepositoryObject
             $this->errorHandler->raiseError($this->lng->txt('permission_denied'), $this->errorHandler->MESSAGE);
         }
 
-        $this->test = \ilObjectFactory::getInstanceByRefId($this->getRefId());
+        $this->test = ilObjectFactory::getInstanceByRefId($this->getRefId());
 
         if (!$this->service->isTestSupported($this->test)) {
             $this->errorHandler->raiseError($this->lng->txt('permission_denied'), $this->errorHandler->MESSAGE);
@@ -98,20 +95,20 @@ class TestLaunchAndReview extends RepositoryObject
             $this->errorHandler->raiseError($this->lng->txt('permission_denied'), $this->errorHandler->MESSAGE);
         }
 
-        $this->testQuestionSetConfigFactory = new \ilTestQuestionSetConfigFactory(
+        $this->testQuestionSetConfigFactory = new ilTestQuestionSetConfigFactory(
             $this->dic->repositoryTree(),
             $this->dic->database(),
             $this->dic['ilPluginAdmin'],
             $this->test
         );
-        $testSessionFactory = new \ilTestSessionFactory($this->test);
+        $testSessionFactory = new ilTestSessionFactory($this->test);
         $this->testSession = $testSessionFactory->getSession();
 
         $this->ensureInitialisedSessionLockString();
 
         $this->testCommand = 'startPlayer';
         if ($this->testSession->getActiveId() > 0) {
-            $testPassesSelector = new \ilTestPassesSelector($this->dic->database(), $this->test);
+            $testPassesSelector = new ilTestPassesSelector($this->dic->database(), $this->test);
             $testPassesSelector->setActiveId($this->testSession->getActiveId());
             $testPassesSelector->setLastFinishedPass($this->testSession->getLastFinishedPass());
 
@@ -124,35 +121,29 @@ class TestLaunchAndReview extends RepositoryObject
         }
     }
 
-    /**
-     * @return URI
-     */
     private function getLaunchUrl() : URI
     {
         $this->ctrl->setParameterByClass(get_class($this->getCoreController()), 'ref_id', $this->test->getRefId());
-        $startAndLauncHUrl = $this->ctrl->getLinkTargetByClass(
-            ['ilUIPluginRouterGUI', get_class($this->getCoreController())],
+        $startAndLaunchUrl = $this->ctrl->getLinkTargetByClass(
+            [ilUIPluginRouterGUI::class, get_class($this->getCoreController())],
             $this->getControllerName() . '.start',
             '',
             false,
             false
         );
 
-        return new URI(ILIAS_HTTP_PATH . '/' . $startAndLauncHUrl);
+        return new URI(ILIAS_HTTP_PATH . '/' . $startAndLaunchUrl);
     }
 
-    /**
-     * @return URI
-     */
     private function getTakeUrl() : URI
     {
-        $testPlayerFactory = new \ilTestPlayerFactory($this->test);
+        $testPlayerFactory = new ilTestPlayerFactory($this->test);
         $playerGui = $testPlayerFactory->getPlayerGUI();
         $this->ctrl->setParameterByClass(get_class($playerGui), 'lock', $this->getSessionLockString());
         $this->ctrl->setParameterByClass(get_class($playerGui), 'sequence', $this->testSession->getLastSequence());
         $this->ctrl->setParameterByClass(get_class($playerGui), 'ref_id', $this->test->getRefId());
         return new URI(ILIAS_HTTP_PATH . '/' . $this->ctrl->getLinkTargetByClass(
-            ['ilRepositoryGUI', 'ilObjTestGUI', get_class($playerGui)],
+            [ilRepositoryGUI::class, ilObjTestGUI::class, get_class($playerGui)],
             $this->testCommand,
             '',
             false,
@@ -160,20 +151,14 @@ class TestLaunchAndReview extends RepositoryObject
         ));
     }
 
-    /**
-     * @return URI
-     */
     private function getTestUrl() : URI
     {
-        return new URI(\ilLink::_getStaticLink($this->test->getRefId(), 'tst'));
+        return new URI(ilLink::_getStaticLink($this->test->getRefId(), 'tst'));
     }
 
-    /**
-     * @return string
-     */
     public function launchCmd() : string
     {
-        $this->pageTemplate->getStandardTemplate();
+        $this->pageTemplate->loadStandardTemplate();
 
         $this->drawHeader();
 
@@ -188,7 +173,7 @@ class TestLaunchAndReview extends RepositoryObject
         $testQuestionSetConfig = $this->testQuestionSetConfigFactory->getQuestionSetConfig();
         $onlineAccess = false;
         if ($this->test->getFixedParticipants()) {
-            $onlineAccessResult = \ilObjTestAccess::_lookupOnlineTestAccess(
+            $onlineAccessResult = ilObjTestAccess::_lookupOnlineTestAccess(
                 $this->test->getId(),
                 $this->testSession->getUserId()
             );
@@ -238,9 +223,6 @@ class TestLaunchAndReview extends RepositoryObject
         }
     }
 
-    /**
-     * @return string
-     */
     public function startCmd() : string
     {
         if (!$this->accessHandler->mayTakeTests($this->test)) {
@@ -254,7 +236,7 @@ class TestLaunchAndReview extends RepositoryObject
         $testQuestionSetConfig = $this->testQuestionSetConfigFactory->getQuestionSetConfig();
         $onlineAccess = false;
         if ($this->test->getFixedParticipants()) {
-            $onlineAccessResult = \ilObjTestAccess::_lookupOnlineTestAccess(
+            $onlineAccessResult = ilObjTestAccess::_lookupOnlineTestAccess(
                 $this->test->getId(),
                 $this->testSession->getUserId()
             );
@@ -285,18 +267,17 @@ class TestLaunchAndReview extends RepositoryObject
         /*
             For a "launch_url" request (which MUST match the "exam_start" regex)
             the LMS MUST NOT respond with a HTTP 200 and a HTML document!
-            Instead the LMS has to respond with a 302 HTTP redirect to an URL matching the "exam_take" regex.
+            Instead, the LMS has to respond with a 302 HTTP redirect to a URL matching the "exam_take" regex.
         */
 
-        \iljQueryUtil::initjQuery($this->pageTemplate);
+        iljQueryUtil::initjQuery($this->pageTemplate);
         $this->pageTemplate->addCss('Modules/Test/templates/default/ta.css');
         $this->pageTemplate->addCss(
             $this->getCoreController()->getPluginObject()->getDirectory() . '/assets/css/styles.css'
         );
         $this->pageTemplate->setBodyClass('kiosk');
-        $this->pageTemplate->setAddFooter(false);
 
-        $btn = \ilLinkButton::getInstance();
+        $btn = ilLinkButton::getInstance();
         $btn->setUrl((new UriToString())->transform($this->getTakeUrl()));
         $btn->setCaption($this->getCoreController()->getPluginObject()->txt('btn_label_continue_proctorio_exam'), false);
 
@@ -314,20 +295,17 @@ class TestLaunchAndReview extends RepositoryObject
         return $template->get();
     }
 
-    /**
-     * @return string
-     */
     public function reviewCmd() : string
     {
-        $this->pageTemplate->getStandardTemplate();
+        $this->pageTemplate->loadStandardTemplate();
 
         $this->drawHeader();
 
         if (
             !$this->coreAccessHandler->checkAccess('write', '', $this->getRefId()) &&
             !$this->coreAccessHandler->checkAccess('tst_results', '', $this->getRefId()) &&
-            !$this->coreAccessHandler->checkPositionAccess(\ilOrgUnitOperation::OP_MANAGE_PARTICIPANTS, $this->getRefId()) &&
-            !$this->coreAccessHandler->checkPositionAccess(\ilOrgUnitOperation::OP_ACCESS_RESULTS, $this->getRefId())
+            !$this->coreAccessHandler->checkPositionAccess(ilOrgUnitOperation::OP_MANAGE_PARTICIPANTS, $this->getRefId()) &&
+            !$this->coreAccessHandler->checkPositionAccess(ilOrgUnitOperation::OP_ACCESS_RESULTS, $this->getRefId())
         ) {
             $this->errorHandler->raiseError($this->lng->txt('permission_denied'), $this->errorHandler->MESSAGE);
         }

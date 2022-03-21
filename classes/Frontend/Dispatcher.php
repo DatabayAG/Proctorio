@@ -3,8 +3,9 @@
 
 namespace ILIAS\Plugin\Proctorio\Frontend;
 
-use \ILIAS\DI\Container;
-use \ILIAS\Plugin\Proctorio\Frontend\Controller\Base;
+use ILIAS\DI\Container;
+use ILIAS\Plugin\Proctorio\Frontend\Controller\Base;
+use ilProctorioUIHookGUI;
 
 /**
  * Class Dispatcher
@@ -15,44 +16,29 @@ class Dispatcher
 {
     /** @var self */
     private static $instance = null;
-    /** @var \ilProctorioUIHookGUI */
+    /** @var ilProctorioUIHookGUI */
     private $coreController;
     /** @var string */
     private $defaultController = '';
     /** @var Container */
     private $dic;
 
-    /**
-     *
-     */
     private function __clone()
     {
     }
 
-    /**
-     * Dispatcher constructor.
-     * @param \ilProctorioUIHookGUI $baseController
-     * @param string $defaultController
-     */
-    private function __construct(\ilProctorioUIHookGUI $baseController, string $defaultController = '')
+    private function __construct(ilProctorioUIHookGUI $baseController, string $defaultController = '')
     {
         $this->coreController = $baseController;
         $this->defaultController = $defaultController;
     }
 
-    /**
-     * @param Container $dic
-     */
     public function setDic(Container $dic) : void
     {
         $this->dic = $dic;
     }
 
-    /**
-     * @param \ilProctorioUIHookGUI $baseController
-     * @return self
-     */
-    public static function getInstance(\ilProctorioUIHookGUI $baseController) : self
+    public static function getInstance(ilProctorioUIHookGUI $baseController) : self
     {
         if (self::$instance === null) {
             self::$instance = new self($baseController);
@@ -61,10 +47,6 @@ class Dispatcher
         return self::$instance;
     }
 
-    /**
-     * @param string $cmd
-     * @return string
-     */
     public function dispatch(string $cmd) : string
     {
         $controller = $this->getController($cmd);
@@ -74,10 +56,6 @@ class Dispatcher
         return $controller->$command();
     }
 
-    /**
-     * @param string $cmd
-     * @return string
-     */
     protected function getController(string $cmd) : string
     {
         $parts = explode('.', $cmd);
@@ -86,13 +64,9 @@ class Dispatcher
             return $parts[0];
         }
 
-        return $this->defaultController ? $this->defaultController : 'Error';
+        return $this->defaultController ?: 'Error';
     }
 
-    /**
-     * @param string $cmd
-     * @return string
-     */
     protected function getCommand(string $cmd) : string
     {
         $parts = explode('.', $cmd);
@@ -117,9 +91,6 @@ class Dispatcher
         return new $class($this->getCoreController(), $this->dic);
     }
 
-    /**
-     * @return string
-     */
     protected function getControllerPath() : string
     {
         $path = $this->getCoreController()->getPluginObject()->getDirectory() .
@@ -134,26 +105,12 @@ class Dispatcher
         return $path;
     }
 
-    /**
-     * @param string $controller
-     */
-    protected function requireController(string $controller) : void
-    {
-        require_once $this->getControllerPath() . $controller . '.php';
-    }
-
-    /**
-     * @return \ilProctorioUIHookGUI
-     */
-    public function getCoreController() : \ilProctorioUIHookGUI
+    public function getCoreController() : ilProctorioUIHookGUI
     {
         return $this->coreController;
     }
 
-    /**
-     * @param \ilProctorioUIHookGUI $coreController
-     */
-    public function setCoreController(\ilProctorioUIHookGUI $coreController) : void
+    public function setCoreController(ilProctorioUIHookGUI $coreController) : void
     {
         $this->coreController = $coreController;
     }

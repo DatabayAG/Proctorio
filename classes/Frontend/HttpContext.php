@@ -3,6 +3,7 @@
 
 namespace ILIAS\Plugin\Proctorio\Frontend;
 
+use ilObjectDataCache;
 use Psr\Http\Message\ServerRequestInterface;
 
 /**
@@ -12,15 +13,11 @@ use Psr\Http\Message\ServerRequestInterface;
  */
 trait HttpContext
 {
-    /** @var \ilObjectDataCache */
+    /** @var ilObjectDataCache */
     protected $objectCache;
     /** @var ServerRequestInterface */
     protected $httpRequest;
 
-    /**
-     * @param string $class
-     * @return bool
-     */
     final public function isBaseClass(string $class) : bool
     {
         $baseClass = (string) ($this->httpRequest->getQueryParams()['baseClass'] ?? '');
@@ -28,10 +25,6 @@ trait HttpContext
         return strtolower($class) === strtolower($baseClass);
     }
 
-    /**
-     * @param string $class
-     * @return bool
-     */
     final public function isCommandClass(string $class) : bool
     {
         $cmdClass = (string) ($this->httpRequest->getQueryParams()['cmdClass'] ?? '');
@@ -39,9 +32,6 @@ trait HttpContext
         return strtolower($class) === strtolower($cmdClass);
     }
 
-    /**
-     * @return int
-     */
     final public function getRefId() : int
     {
         $refId = (int) ($this->httpRequest->getQueryParams()['ref_id'] ?? 0);
@@ -49,9 +39,6 @@ trait HttpContext
         return $refId;
     }
 
-    /**
-     * @return int
-     */
     final public function getPreviewRefId() : int
     {
         $refId = (int) ($this->httpRequest->getQueryParams()['intro_item_ref_id'] ?? 0);
@@ -59,13 +46,10 @@ trait HttpContext
         return $refId;
     }
 
-    /**
-     * @return int
-     */
     final public function getTargetRefId() : int
     {
         $matches = null;
-        if (preg_match('/^[a-zA-Z0-9]+_(\d+)$/', ((string) $this->httpRequest->getQueryParams()['target'] ?? ''), $matches)) {
+        if (preg_match('/^[a-zA-Z0-9]+_(\d+)$/', (string) ($this->httpRequest->getQueryParams()['target'] ?? ''), $matches)) {
             if (is_array($matches) && isset($matches[1]) && is_numeric($matches[1]) && $matches[1] > 0) {
                 return (int) $matches[1];
             }
@@ -74,10 +58,6 @@ trait HttpContext
         return 0;
     }
 
-    /**
-     * @param int $objId
-     * @return bool
-     */
     final public function isObjectOfId(int $objId) : bool
     {
         $refId = $this->getRefId();
@@ -88,10 +68,6 @@ trait HttpContext
         return ((int) $this->objectCache->lookupObjId($refId) === $objId);
     }
 
-    /**
-     * @param string $type
-     * @return bool
-     */
     final public function isObjectOfType(string $type) : bool
     {
         $refId = $this->getRefId();
@@ -104,10 +80,6 @@ trait HttpContext
         return $this->objectCache->lookupType($objId) === $type;
     }
 
-    /**
-     * @param string $type
-     * @return bool
-     */
     final public function isPreviewObjectOfType(string $type) : bool
     {
         $refId = $this->getPreviewRefId();
@@ -121,10 +93,6 @@ trait HttpContext
     }
 
 
-    /**
-     * @param string $type
-     * @return bool
-     */
     final public function isTargetObjectOfType(string $type) : bool
     {
         $refId = $this->getTargetRefId();

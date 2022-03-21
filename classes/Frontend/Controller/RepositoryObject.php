@@ -3,6 +3,8 @@
 
 namespace ILIAS\Plugin\Proctorio\Frontend\Controller;
 
+use ReflectionMethod;
+
 /**
  * Class Course
  * @package ILIAS\Plugin\Proctorio\Frontend\Controller
@@ -10,20 +12,14 @@ namespace ILIAS\Plugin\Proctorio\Frontend\Controller;
  */
 abstract class RepositoryObject extends Base
 {
-    /**
-     * @return string
-     */
     abstract public function getObjectGuiClass() : string;
 
-    /**
-     * @throws \ReflectionException
-     */
     protected function drawHeader() : void
     {
         $class = $this->getObjectGuiClass();
         $object = new $class();
 
-        $reflectionMethod = new \ReflectionMethod($class, 'setTitleAndDescription');
+        $reflectionMethod = new ReflectionMethod($class, 'setTitleAndDescription');
         $reflectionMethod->setAccessible(true);
         $reflectionMethod->invoke($object);
 

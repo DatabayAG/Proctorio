@@ -3,6 +3,20 @@
 
 namespace ILIAS\Plugin\Proctorio\Frontend\ViewModifier;
 
+use DOMDocument;
+use DOMElement;
+use DomXPath;
+use ilInfoScreenGUI;
+use ilLinkButton;
+use ilObjCourseGUI;
+use ilObjectFactory;
+use ilObjTest;
+use ilObjTestGUI;
+use ilOrgUnitOperation;
+use ilToolbarGUI;
+use ilUIHookPluginGUI;
+use ilUIPluginRouterGUI;
+
 /**
  * Class TestLaunch
  * @package ILIAS\Plugin\Proctorio\Frontend\Controller
@@ -10,28 +24,22 @@ namespace ILIAS\Plugin\Proctorio\Frontend\ViewModifier;
  */
 class TestLaunch extends Base
 {
-    const CMD_START_TEST = 'startPlayer';
-    const CMD_RESUME_TEST = 'resumePlayer';
+    private const CMD_START_TEST = 'startPlayer';
+    private const CMD_RESUME_TEST = 'resumePlayer';
     
-    /** @var \ilObjTest */
+    /** @var ilObjTest */
     private $test;
     /** @var bool */
     private $reviewButtonRendered = false;
 
-    /**
-     * @return bool
-     */
     private function isPreviewContext() : bool
     {
         return (
-            $this->isCommandClass(\ilObjCourseGUI::class) &&
+            $this->isCommandClass(ilObjCourseGUI::class) &&
             strtolower($this->ctrl->getCmd()) === strtolower('showItemIntro')
         );
     }
 
-    /**
-     * @return bool
-     */
     private function isInfoScreenContext() : bool
     {
         $validInfoScreenCommands = array_map('strtolower', [
@@ -52,28 +60,25 @@ class TestLaunch extends Base
         ]);
         
         $isBaseClassInfoScreenRequest = (
-            $this->isBaseClass(\ilObjTestGUI::class) &&
-            in_array(strtolower($this->ctrl->getCmd()), $validInfoScreenCommands)
+            $this->isBaseClass(ilObjTestGUI::class) &&
+            in_array(strtolower($this->ctrl->getCmd()), $validInfoScreenCommands, true)
         );
 
         $isCmdClassInfoScreenRequest = (
-            $this->isCommandClass(\ilInfoScreenGUI::class) &&
-            in_array(strtolower($this->ctrl->getCmd()), $validInfoScreenCommands)
+            $this->isCommandClass(ilInfoScreenGUI::class) &&
+            in_array(strtolower($this->ctrl->getCmd()), $validInfoScreenCommands, true)
         ) || (
-            $this->isCommandClass(\ilObjTestGUI::class) &&
-            in_array(strtolower($this->ctrl->getCmd()), $validInfoScreenCommands)
+            $this->isCommandClass(ilObjTestGUI::class) &&
+            in_array(strtolower($this->ctrl->getCmd()), $validInfoScreenCommands, true)
         );
 
         $isGotoRequest = (
-            preg_match('/^tst_\d+$/', (string) $this->httpRequest->getQueryParams()['target'] ?? '')
+            preg_match('/^tst_\d+$/', (string) ($this->httpRequest->getQueryParams()['target'] ?? ''))
         );
 
         return $isBaseClassInfoScreenRequest || $isCmdClassInfoScreenRequest || $isGotoRequest;
     }
 
-    /**
-     * @return int
-     */
     private function getTestRefId() : int
     {
         $refId = $this->getPreviewRefId();
@@ -126,7 +131,7 @@ class TestLaunch extends Base
             return false;
         }
 
-        $this->test = \ilObjectFactory::getInstanceByRefId($this->getTestRefId());
+        $this->test = ilObjectFactory::getInstanceByRefId($this->getTestRefId());
         if (!$this->service->isTestSupported($this->test)) {
             return false;
         }
@@ -145,7 +150,7 @@ class TestLaunch extends Base
     {
         $html = $parameters['html'];
 
-        $unmodified = ['mode' => \ilUIHookPluginGUI::KEEP, 'html' => ''];
+        $unmodified = ['mode' => ilUIHookPluginGUI::KEEP, 'html' => ''];
 
         if ('Services/InfoScreen/tpl.infoscreen.html' === $parameters['tpl_id']) {
             $this->addReviewButtonToToolbar();
@@ -153,7 +158,7 @@ class TestLaunch extends Base
             return $unmodified;
         }
 
-        $doc = new \DOMDocument("1.0", "utf-8");
+        $doc = new DOMDocument("1.0", "utf-8");
         if (!@$doc->loadHTML('<?xml encoding="utf-8" ?><html><body>' . $html . '</body></html>')) {
             return $unmodified;
         }
@@ -163,16 +168,13 @@ class TestLaunch extends Base
         $this->addReviewButton($doc);
 
         $processedHtml = $doc->saveHTML($doc->getElementsByTagName('body')->item(0));
-        if (0 === strlen($processedHtml)) {
+        if ($processedHtml === '') {
             return $unmodified;
         }
 
-        return ['mode' => \ilUIHookPluginGUI::REPLACE, 'html' => $this->cleanHtmlString($processedHtml)];
+        return ['mode' => ilUIHookPluginGUI::REPLACE, 'html' => $this->cleanHtmlString($processedHtml)];
     }
 
-    /**
-     *
-     */
     private function addReviewButtonToToolbar() : void
     {
         $this->reviewButtonRendered = true;
@@ -187,13 +189,13 @@ class TestLaunch extends Base
             $this->getTestRefId()
         );
         $url = $this->ctrl->getLinkTargetByClass(
-            ['ilUIPluginRouterGUI', get_class($this->getCoreController())],
+            [ilUIPluginRouterGUI::class, get_class($this->getCoreController())],
             'TestLaunchAndReview.review',
             '',
             false,
             false
         );
-        $btn = \ilLinkButton::getInstance();
+        $btn = ilLinkButton::getInstance();
         $btn->setUrl($url);
         $btn->setCaption(
             $this->getCoreController()->getPluginObject()->txt('btn_label_proctorio_review'),
@@ -202,23 +204,17 @@ class TestLaunch extends Base
         $this->toolbar->addButtonInstance($btn);
     }
 
-    /**
-     * @return bool
-     */
     private function hasReviewRbacAccess() : bool
     {
         return (
             $this->coreAccessHandler->checkAccess('write', '', $this->getTestRefId()) ||
             $this->coreAccessHandler->checkAccess('tst_results', '', $this->getTestRefId()) ||
-            $this->coreAccessHandler->checkPositionAccess(\ilOrgUnitOperation::OP_MANAGE_PARTICIPANTS, $this->getTestRefId()) ||
-            $this->coreAccessHandler->checkPositionAccess(\ilOrgUnitOperation::OP_ACCESS_RESULTS, $this->getTestRefId())
+            $this->coreAccessHandler->checkPositionAccess(ilOrgUnitOperation::OP_MANAGE_PARTICIPANTS, $this->getTestRefId()) ||
+            $this->coreAccessHandler->checkPositionAccess(ilOrgUnitOperation::OP_ACCESS_RESULTS, $this->getTestRefId())
         );
     }
 
-    /**
-     * @param \DOMDocument $doc
-     */
-    private function addReviewButton(\DOMDocument $doc) : void
+    private function addReviewButton(DOMDocument $doc) : void
     {
         if ($this->reviewButtonRendered) {
             return;
@@ -228,7 +224,7 @@ class TestLaunch extends Base
             return;
         }
 
-        $xpath = new \DomXPath($doc);
+        $xpath = new DomXPath($doc);
         $toolbarButtons = $xpath->query("(//form[@id='ilToolbar'][1]//input | //form[@id='ilToolbar'][1]//a)[last()]");
 
         $this->ctrl->setParameterByClass(
@@ -237,7 +233,7 @@ class TestLaunch extends Base
             $this->getTestRefId()
         );
         $url = $this->ctrl->getLinkTargetByClass(
-            ['ilUIPluginRouterGUI', get_class($this->getCoreController())],
+            [ilUIPluginRouterGUI::class, get_class($this->getCoreController())],
             'TestLaunchAndReview.review',
             '',
             false,
@@ -257,8 +253,8 @@ class TestLaunch extends Base
 
             $referenceButton->parentNode->insertBefore($btn, $referenceButton->nextSibling);
         } else {
-            $toolbar = new \ilToolbarGUI();
-            $btn = \ilLinkButton::getInstance();
+            $toolbar = new ilToolbarGUI();
+            $btn = ilLinkButton::getInstance();
             $btn->setUrl($url);
             $btn->setCaption($this->getCoreController()->getPluginObject()->txt('btn_label_proctorio_review'), false);
             $toolbar->addButtonInstance($btn);
@@ -267,7 +263,7 @@ class TestLaunch extends Base
             if ($this->isPreviewContext()) {
                 $nodes = $xpath->query("//*[contains(concat(' ', normalize-space(@class), ' '), ' item-intro-add-container ')]");
                 if (1 === $nodes->length) {
-                    $toolbarDoc = new \DOMDocument("1.0", "utf-8");
+                    $toolbarDoc = new DOMDocument("1.0", "utf-8");
                     if (!@$toolbarDoc->loadHTML('<?xml encoding="utf-8" ?><html><body>' . $toolbarHtml . '</body></html>')) {
                         return;
                     }
@@ -282,12 +278,9 @@ class TestLaunch extends Base
         }
     }
 
-    /**
-     * @param \DOMDocument $doc
-     */
-    private function manipulateLaunchButton(\DOMDocument $doc) : void
+    private function manipulateLaunchButton(DOMDocument $doc) : void
     {
-        $xpath = new \DomXPath($doc);
+        $xpath = new DomXPath($doc);
         $startPlayerCommandButton = $xpath->query("//input[contains(@name, '" . self::CMD_START_TEST . "')]");
         $resumePlayerCommandButton = $xpath->query("//input[contains(@name, '" . self::CMD_RESUME_TEST . "')]");
 
@@ -300,11 +293,7 @@ class TestLaunch extends Base
         }
     }
 
-    /**
-     * @param \DOMDocument $doc
-     * @param \DOMElement $elm
-     */
-    private function manipulateLaunchElement(\DOMDocument $doc, \DOMElement $elm) : void
+    private function manipulateLaunchElement(DOMDocument $doc, DOMElement $elm) : void
     {
         if (!$this->accessHandler->mayTakeTests($this->test)) {
             $elm->parentNode->removeChild($elm);
@@ -317,7 +306,7 @@ class TestLaunch extends Base
             $this->getTestRefId()
         );
         $url = $this->ctrl->getLinkTargetByClass(
-            ['ilUIPluginRouterGUI', get_class($this->getCoreController())],
+            [ilUIPluginRouterGUI::class, get_class($this->getCoreController())],
             'TestLaunchAndReview.launch',
             '',
             false,

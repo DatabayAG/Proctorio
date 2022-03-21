@@ -3,6 +3,10 @@
 
 namespace ILIAS\Plugin\Proctorio\Frontend\ViewModifier;
 
+use ilAccessHandler;
+use ilCtrl;
+use ilErrorHandling;
+use ilGlobalTemplateInterface;
 use ILIAS\DI\Container;
 use ILIAS\Plugin\Proctorio\AccessControl\AccessHandler;
 use ILIAS\Plugin\Proctorio\Frontend\HttpContext;
@@ -10,7 +14,13 @@ use ILIAS\Plugin\Proctorio\Frontend\ViewModifier;
 use ILIAS\Plugin\Proctorio\Service\Proctorio\Impl;
 use ILIAS\UI\Factory;
 use ILIAS\UI\Renderer;
+use ilLanguage;
+use ilObjuser;
+use ilProctorioUIHookGUI;
+use ilTemplate;
+use ilToolbarGUI;
 use Psr\Http\Message\ServerRequestInterface;
+use ReflectionClass;
 
 /**
  * Class ViewModifier
@@ -21,29 +31,29 @@ abstract class Base implements ViewModifier
 {
     use HttpContext;
 
-    /** @var \ilTemplate */
+    /** @var ilGlobalTemplateInterface */
     protected $pageTemplate;
     /** @var Factory */
     protected $uiFactory;
-    /** @var \ilCtrl */
+    /** @var ilCtrl */
     protected $ctrl;
     /** @var Renderer */
     protected $uiRenderer;
     /** @var Container */
     protected $dic;
-    /** @var \ilToolbarGUI */
+    /** @var ilToolbarGUI */
     protected $toolbar;
-    /** @var \ilObjuser */
+    /** @var ilObjuser */
     protected $user;
-    /** @var \ilAccessHandler */
+    /** @var ilAccessHandler */
     protected $coreAccessHandler;
-    /** @var \ilErrorHandling */
+    /** @var ilErrorHandling */
     protected $errorHandler;
-    /** @var \ilLanguage */
+    /** @var ilLanguage */
     protected $lng;
-    /** @var \ilProctorioUIHookGUI */
+    /** @var ilProctorioUIHookGUI */
     public $coreController;
-    /** @var \ilTemplate */
+    /** @var ilTemplate */
     protected $mainTemplate;
     /** @var Impl */
     protected $service;
@@ -51,14 +61,8 @@ abstract class Base implements ViewModifier
     protected $httpRequest;
     /** @var AccessHandler */
     protected $accessHandler;
-    /** @var \ilAccessHandler */
 
-    /**
-     * Base constructor.
-     * @param \ilProctorioUIHookGUI $controller
-     * @param Container $dic
-     */
-    final public function __construct(\ilProctorioUIHookGUI $controller, Container $dic)
+    final public function __construct(ilProctorioUIHookGUI $controller, Container $dic)
     {
         $this->coreController = $controller;
         $this->dic = $dic;
@@ -66,7 +70,6 @@ abstract class Base implements ViewModifier
         $this->httpRequest = $dic->http()->request();
         $this->objectCache = $dic['ilObjDataCache'];
 
-        $this->mainTemplate = $dic->ui()->mainTemplate();
         $this->ctrl = $dic->ctrl();
         $this->lng = $dic->language();
         $this->pageTemplate = $dic->ui()->mainTemplate();
@@ -80,35 +83,21 @@ abstract class Base implements ViewModifier
         $this->service = $dic['plugin.proctorio.service'];
     }
 
-    /**
-     * @return \ilProctorioUIHookGUI
-     */
-    public function getCoreController() : \ilProctorioUIHookGUI
+    public function getCoreController() : ilProctorioUIHookGUI
     {
         return $this->coreController;
     }
 
-    /**
-     * @return Container
-     */
     public function getDic() : Container
     {
         return $this->dic;
     }
 
-    /**
-     * @return string
-     * @throws \ReflectionException
-     */
     final public function getClassName() : string
     {
-        return (new \ReflectionClass($this))->getShortName();
+        return (new ReflectionClass($this))->getShortName();
     }
 
-    /**
-     * @param string $html
-     * @return string
-     */
     final protected function cleanHtmlString(string $html) : string
     {
         return str_replace(['<body>', '</body>'], '', $html);

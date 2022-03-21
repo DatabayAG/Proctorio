@@ -3,18 +3,23 @@
 
 namespace ILIAS\Plugin\Proctorio\Frontend\Form;
 
+use ilCheckboxInputGUI;
+use ilFormSectionHeaderGUI;
 use ILIAS\Plugin\Proctorio\Frontend\Controller\Base;
 use ILIAS\Plugin\Proctorio\Service\Proctorio\Impl as ProctorioService;
 use ILIAS\Plugin\Proctorio\UI\Form\Bindable;
+use ilObjTest;
+use ilProctorioPlugin;
+use ilPropertyFormGUI;
 
 /**
  * Class TestSettings
  * @package ILIAS\Plugin\Proctorio\Frontend\Form
  * @author Michael Jansen <mjansen@databay.de>
  */
-class TestSettings extends \ilPropertyFormGUI
+class TestSettings extends ilPropertyFormGUI
 {
-    /** @var \ilProctorioPlugin */
+    /** @var ilProctorioPlugin */
     private $plugin;
     /** @var Base */
     private $controller;
@@ -22,23 +27,15 @@ class TestSettings extends \ilPropertyFormGUI
     private $cmdObject;
     /** @var bool */
     protected $isReadOnly = false;
-    /** @var \ilObjTest */
+    /** @var ilObjTest */
     protected $test;
 
-    /**
-     * Form constructor.
-     * @param \ilProctorioPlugin $plugin
-     * @param Base $controller
-     * @param object $cmdObject
-     * @param bool $isReadonly
-     * @param \ilObjTest $test
-     */
     public function __construct(
-        \ilProctorioPlugin $plugin,
+        ilProctorioPlugin $plugin,
         Base $controller,
         $cmdObject,
         bool $isReadOnly,
-        \ilObjTest $test
+        ilObjTest $test
     ) {
         $this->plugin = $plugin;
         $this->controller = $controller;
@@ -53,31 +50,28 @@ class TestSettings extends \ilPropertyFormGUI
     /**
      * @inheritDoc
      */
-    public function addCommandButton($a_cmd, $a_text, $a_id = "")
+    public function addCommandButton($a_cmd, $a_text, $a_id = "") : void
     {
         if (!$this->isReadOnly) {
             parent::addCommandButton($a_cmd, $a_text, $a_id);
         }
     }
 
-    /**
-     *
-     */
     protected function initForm() : void
     {
         $this->setTitle($this->plugin->txt('form_header_settings'));
         $this->setDescription($this->plugin->txt('exam_settings_info_test_started'));
         
-        $activationStatus = new \ilCheckboxInputGUI(
+        $activationStatus = new ilCheckboxInputGUI(
             $this->plugin->txt('exam_setting_label_status'),
             'status'
         );
         $activationStatus->setInfo($this->plugin->txt('exam_setting_label_status_info'));
-        $activationStatus->setValue(1);
+        $activationStatus->setValue('1');
         $activationStatus->setDisabled($this->isReadOnly);
         $this->addItem($activationStatus);
         
-        $examSettingsHeader = new \ilFormSectionHeaderGUI();
+        $examSettingsHeader = new ilFormSectionHeaderGUI();
         $examSettingsHeader->setTitle($this->plugin->txt('form_header_exam_settings'));
         $this->addItem($examSettingsHeader);
 

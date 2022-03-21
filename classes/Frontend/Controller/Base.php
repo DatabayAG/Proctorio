@@ -3,15 +3,25 @@
 
 namespace ILIAS\Plugin\Proctorio\Frontend\Controller;
 
-use \ILIAS\DI\Container;
+use ilAccessHandler;
+use ilCtrl;
+use ilErrorHandling;
+use ilGlobalTemplateInterface;
+use ILIAS\DI\Container;
 use ILIAS\Plugin\Proctorio\Administration\GeneralSettings\Settings;
 use ILIAS\Plugin\Proctorio\Frontend\HttpContext;
 use ILIAS\Plugin\Proctorio\Service\Proctorio\Impl as ProctorioService;
 use ILIAS\Plugin\Proctorio\Webservice\Rest\Impl;
-use \ILIAS\UI\Factory;
-use \ILIAS\UI\Renderer;
-use \Psr\Http\Message\ServerRequestInterface;
+use ILIAS\UI\Factory;
+use ILIAS\UI\Renderer;
+use ilLanguage;
+use ilLogger;
+use ilObjuser;
+use ilProctorioUIHookGUI;
+use ilToolbarGUI;
+use Psr\Http\Message\ServerRequestInterface;
 use ILIAS\Plugin\Proctorio\AccessControl\AccessHandler;
+use ReflectionClass;
 
 /**
  * @author Michael Jansen <mjansen@databay.de>
@@ -20,29 +30,29 @@ abstract class Base
 {
     use HttpContext;
 
-    /** @var \ilTemplate */
+    /** @var ilGlobalTemplateInterface */
     public $pageTemplate;
     /** @var Factory */
     protected $uiFactory;
-    /** @var \ilCtrl */
+    /** @var ilCtrl */
     protected $ctrl;
     /** @var Renderer */
     protected $uiRenderer;
     /** @var Container */
     protected $dic;
-    /** @var \ilToolbarGUI */
+    /** @var ilToolbarGUI */
     protected $toolbar;
-    /** @var \ilObjuser */
+    /** @var ilObjuser */
     protected $user;
-    /** @var \ilAccessHandler */
+    /** @var ilAccessHandler */
     protected $coreAccessHandler;
     /** @var AccessHandler */
     protected $accessHandler;
-    /** @var \ilErrorHandling */
+    /** @var ilErrorHandling */
     protected $errorHandler;
-    /** @var \ilLanguage */
+    /** @var ilLanguage */
     public $lng;
-    /** @var \ilProctorioUIHookGUI */
+    /** @var ilProctorioUIHookGUI */
     public $coreController;
     /** @var Settings */
     protected $globalProctorioSettings;
@@ -52,15 +62,10 @@ abstract class Base
     protected $service;
     /** @var ServerRequestInterface */
     protected $httpRequest;
-    /** @var \ilLogger */
+    /** @var ilLogger */
     protected $log;
 
-    /**
-     * Base constructor.
-     * @param \ilProctorioUIHookGUI $controller
-     * @param Container $dic
-     */
-    final public function __construct(\ilProctorioUIHookGUI $controller, Container $dic)
+    final public function __construct(ilProctorioUIHookGUI $controller, Container $dic)
     {
         $this->coreController = $controller;
         $this->dic = $dic;
@@ -86,9 +91,6 @@ abstract class Base
         $this->init();
     }
 
-    /**
-     *
-     */
     protected function init() : void
     {
         if (!$this->getCoreController()->getPluginObject()->isActive()) {
@@ -106,33 +108,20 @@ abstract class Base
         return call_user_func_array([$this, $this->getDefaultCommand()], []);
     }
 
-    /**
-     * @return string
-     */
     abstract public function getDefaultCommand() : string;
 
-    /**
-     * @return \ilProctorioUIHookGUI
-     */
-    public function getCoreController() : \ilProctorioUIHookGUI
+    public function getCoreController() : ilProctorioUIHookGUI
     {
         return $this->coreController;
     }
 
-    /**
-     * @return Container
-     */
     public function getDic() : Container
     {
         return $this->dic;
     }
 
-    /**
-     * @return string
-     * @throws \ReflectionException
-     */
     final public function getControllerName() : string
     {
-        return (new \ReflectionClass($this))->getShortName();
+        return (new ReflectionClass($this))->getShortName();
     }
 }

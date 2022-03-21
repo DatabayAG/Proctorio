@@ -18,26 +18,16 @@ class GenericRole implements Role
      */
     protected $roleId = '';
 
-    /**
-     * GenericRole constructor.
-     * @param string $roleId
-     */
     public function __construct(string $roleId)
     {
         $this->roleId = $roleId;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getRoleId() : string
     {
         return $this->roleId;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function __toString()
     {
         return $this->getRoleId();

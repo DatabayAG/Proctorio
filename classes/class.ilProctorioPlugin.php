@@ -3,6 +3,7 @@
 
 use ILIAS\DI\Container;
 use ILIAS\Plugin\Proctorio\Administration\GeneralSettings\Settings;
+use ILIAS\Plugin\Proctorio\Webservice\Rest;
 use ILIAS\Plugin\Proctorio\Webservice\Rest\Impl;
 use ILIAS\Plugin\Proctorio\AccessControl\Acl\Impl as Acl;
 use ILIAS\Plugin\Proctorio\AccessControl\Acl\Resource\GenericResource;
@@ -17,35 +18,32 @@ use ILIAS\Plugin\Proctorio\AccessControl\Handler\RoleBased;
  */
 class ilProctorioPlugin extends ilUserInterfaceHookPlugin
 {
-    /** @var string */
-    const CTYPE = 'Services';
-    /** @var string */
-    const CNAME = 'UIComponent';
-    /** @var string */
-    const SLOT_ID = 'uihk';
-    /** @var string */
-    const PNAME = 'Proctorio';
+    private const CTYPE = 'Services';
+    private const CNAME = 'UIComponent';
+    private  const SLOT_ID = 'uihk';
+    private  const PNAME = 'Proctorio';
+
     /** @var self */
     private static $instance = null;
     /** @var bool */
     protected static $initialized = false;
-    /** @var bool[] */
+    /** @var array<string, array<string, array<string, bool>>> */
     protected static $activePluginsCheckCache = [];
-    /** @var ilPlugin[] */
+    /** @var array<string, array<string, array<string, ilPlugin>>> */
     protected static $activePluginsCache = [];
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function getPluginName()
+    public function getPluginName() : string
     {
         return self::PNAME;
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    protected function init()
+    protected function init() : void
     {
         parent::init();
         $this->registerAutoloader();
@@ -53,14 +51,14 @@ class ilProctorioPlugin extends ilUserInterfaceHookPlugin
         if (!self::$initialized) {
             self::$initialized = true;
 
-            $GLOBALS['DIC']['plugin.proctorio.settings'] = function (Container $c) {
+            $GLOBALS['DIC']['plugin.proctorio.settings'] = function (Container $c) : Settings {
                 return new Settings(
-                    new \ilSetting($this->getId()),
+                    new ilSetting($this->getId()),
                     $c['plugin.proctorio.acl']
                 );
             };
 
-            $GLOBALS['DIC']['plugin.proctorio.accessHandler'] = function (Container $c) {
+            $GLOBALS['DIC']['plugin.proctorio.accessHandler'] = static function (Container $c) : Cached {
                 return new Cached(
                     new RoleBased(
                         $c->user(),
@@ -71,7 +69,7 @@ class ilProctorioPlugin extends ilUserInterfaceHookPlugin
                 );
             };
 
-            $GLOBALS['DIC']['plugin.proctorio.acl'] = function (Container $c) {
+            $GLOBALS['DIC']['plugin.proctorio.acl'] = static function (Container $c) : \ILIAS\Plugin\Proctorio\AccessControl\Acl {
                 $acl = new Acl(new Registry());
 
                 $acl
@@ -87,7 +85,7 @@ class ilProctorioPlugin extends ilUserInterfaceHookPlugin
                 return $acl;
             };
 
-            $GLOBALS['DIC']['plugin.proctorio.api'] = function (Container $c) {
+            $GLOBALS['DIC']['plugin.proctorio.api'] = static function (Container $c) : Rest {
                 return new Impl(
                     $c['plugin.proctorio.service'],
                     $c['plugin.proctorio.settings'],
@@ -95,7 +93,7 @@ class ilProctorioPlugin extends ilUserInterfaceHookPlugin
                 );
             };
 
-            $GLOBALS['DIC']['plugin.proctorio.service'] = function (Container $c) {
+            $GLOBALS['DIC']['plugin.proctorio.service'] = static function (Container $c) : \ILIAS\Plugin\Proctorio\Service\Proctorio\Impl {
                 return new \ILIAS\Plugin\Proctorio\Service\Proctorio\Impl(
                     $c->user(),
                     $c['plugin.proctorio.settings']
@@ -107,7 +105,7 @@ class ilProctorioPlugin extends ilUserInterfaceHookPlugin
     /**
      * @inheritDoc
      */
-    protected function afterUninstall()
+    protected function afterUninstall() : void
     {
         parent::afterUninstall();
 
@@ -115,9 +113,6 @@ class ilProctorioPlugin extends ilUserInterfaceHookPlugin
         $settings->deleteAll();
     }
 
-    /**
-     * Registers the plugin autoloader
-     */
     public function registerAutoloader() : void
     {
         require_once __DIR__ . '/../vendor/autoload.php';
@@ -128,16 +123,12 @@ class ilProctorioPlugin extends ilUserInterfaceHookPlugin
      */
     public static function getInstance() : self
     {
-        if (null === self::$instance) {
-            return self::$instance = ilPluginAdmin::getPluginObject(
-                self::CTYPE,
-                self::CNAME,
-                self::SLOT_ID,
-                self::PNAME
-            );
-        }
-
-        return self::$instance;
+        return self::$instance ?? (self::$instance = ilPluginAdmin::getPluginObject(
+            self::CTYPE,
+            self::CNAME,
+            self::SLOT_ID,
+            self::PNAME
+        ));
     }
 
     /**

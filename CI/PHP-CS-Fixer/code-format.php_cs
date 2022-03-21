@@ -6,7 +6,8 @@ $finder = PhpCsFixer\Finder::create()
     ->exclude([__DIR__ .  '/../../vendor'])
     ->in([__DIR__ .  '/../../']);
 
-return PhpCsFixer\Config::create()
+$config = new PhpCsFixer\Config();
+return $config
     ->setRules([
         '@PSR2' => true,
         'strict_param' => false,

@@ -3,6 +3,9 @@
 
 namespace ILIAS\Plugin\Proctorio\AccessControl;
 
+use ilObjTest;
+use ilObjUser;
+
 /**
  * Interface AccessHandler
  * @package ILIAS\Plugin\Proctorio\AccessControl
@@ -10,21 +13,13 @@ namespace ILIAS\Plugin\Proctorio\AccessControl;
  */
 interface AccessHandler
 {
-    /**
-     * @param \ilObjUser $actor
-     * @return self
-     */
-    public function withActor(\ilObjUser $actor) : self;
+    public function withActor(ilObjUser $actor) : self;
 
-    /** @return bool */
-    public function mayTakeTests(\ilObjTest $test) : bool;
+    public function mayTakeTests(ilObjTest $test) : bool;
 
-    /** @return bool */
-    public function mayReadTestReviews(\ilObjTest $test) : bool;
+    public function mayReadTestReviews(ilObjTest $test) : bool;
 
-    /** @return bool */
-    public function mayReadTestSettings(\ilObjTest $test) : bool;
+    public function mayReadTestSettings(ilObjTest $test) : bool;
 
-    /** @return bool */
-    public function mayWriteTestSettings(\ilObjTest $test) : bool;
+    public function mayWriteTestSettings(ilObjTest $test) : bool;
 }

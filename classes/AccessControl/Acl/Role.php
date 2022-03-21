@@ -9,8 +9,5 @@ namespace ILIAS\Plugin\Proctorio\AccessControl\Acl;
  */
 interface Role
 {
-    /**
-     * @return string
-     */
     public function getRoleId() : string;
 }

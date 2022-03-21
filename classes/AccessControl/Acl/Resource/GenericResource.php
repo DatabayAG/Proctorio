@@ -18,26 +18,16 @@ class GenericResource implements Resource
      */
     protected $resourceId = '';
 
-    /**
-     * GenericRole constructor.
-     * @param string $roleId
-     */
     public function __construct(string $roleId)
     {
         $this->resourceId = $roleId;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getResourceId() : string
     {
         return $this->resourceId;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function __toString()
     {
         return $this->getResourceId();

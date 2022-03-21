@@ -3,16 +3,23 @@
 
 namespace ILIAS\Plugin\Proctorio\Frontend\Form;
 
+use ilAccordionGUI;
+use ilProctorioPlugin;
+use ilSubEnabledFormPropertyGUI;
+use ilTemplate;
+use ilTemplateException;
+use ilUtil;
+
 /**
  * Class ExamSettingsInput
  * @package ILIAS\Plugin\Proctorio\Frontend\Form
  * @author Michael Jansen <mjansen@databay.de>
  */
-class ExamSettingsInput extends \ilSubEnabledFormPropertyGUI
+class ExamSettingsInput extends ilSubEnabledFormPropertyGUI
 {
-    const IMAGE_CDN_BASE_URL = 'https://cdn.proctorio.net/assets/exam-settings/';
+    private const IMAGE_CDN_BASE_URL = 'https://cdn.proctorio.net/assets/exam-settings/';
 
-    /** @var \ilProctorioPlugin */
+    /** @var ilProctorioPlugin */
     private $plugin;
     /** @var array */
     private $clientLanguageMapping = [];
@@ -124,30 +131,22 @@ class ExamSettingsInput extends \ilSubEnabledFormPropertyGUI
     ];
     /** @var array[] */
     private $validExamSettingsKeysBySetting = [];
-    /** @var string[] */
+    /** @var array<string, string> */
     private $dependenciesOfSetting = [];
-    /** @var string[] */
+    /** @var array<string, string[]> */
     private $blocksBySetting = [];
     /** @var bool */
     private $wasValidationError = false;
     /** @var array */
     private $value = [];
 
-    /**
-     * ExamSettingsInput constructor.
-     * @param string $a_title
-     * @param string $a_postvar
-     */
-    public function __construct(\ilProctorioPlugin $plugin, $a_title = '', $a_postvar = '')
+    public function __construct(ilProctorioPlugin $plugin, string $a_title = '', string $a_postvar = '')
     {
         parent::__construct($a_title, $a_postvar);
         $this->plugin = $plugin;
         $this->init();
     }
 
-    /**
-     *
-     */
     protected function init() : void
     {
         $this->onLoadCodeConfiguration['postVar'] = $this->getPostVar();
@@ -199,15 +198,15 @@ class ExamSettingsInput extends \ilSubEnabledFormPropertyGUI
     }
 
     /**
-     * @param $values
+     * @param array<string, mixed> $values
      */
-    public function setValueByArray($values) : void
+    public function setValueByArray(array $values) : void
     {
         $this->setValue($values[$this->getPostVar()] ?? []);
     }
 
     /**
-     * @param $value
+     * @param mixed $value
      */
     public function setValue($value) : void
     {
@@ -216,9 +215,6 @@ class ExamSettingsInput extends \ilSubEnabledFormPropertyGUI
         }
     }
 
-    /**
-     * @return array
-     */
     public function getValue() : array
     {
         return $this->value;
@@ -227,7 +223,7 @@ class ExamSettingsInput extends \ilSubEnabledFormPropertyGUI
     /**
      * @inheritDoc
      */
-    public function checkInput()
+    public function checkInput() : bool
     {
         if (!isset($_POST[$this->getPostVar()]) || !is_array($_POST[$this->getPostVar()])) {
             $_POST[$this->getPostVar()] = [];
@@ -241,11 +237,11 @@ class ExamSettingsInput extends \ilSubEnabledFormPropertyGUI
             }
         }
 
-        $_POST[$this->getPostVar()] = array_map(function ($value) {
-            return trim((string) \ilUtil::stripSlashesRecursive($value));
+        $_POST[$this->getPostVar()] = array_map(static function ($value) : string {
+            return trim(ilUtil::stripSlashesRecursive((string) $value));
         }, $_POST[$this->getPostVar()]);
 
-        if ($this->getRequired() && 0 === strlen(implode('', $_POST[$this->getPostVar()]))) {
+        if ($this->getRequired() && implode('', $_POST[$this->getPostVar()]) === '') {
             $this->setAlert($this->lng->txt('msg_input_is_required'));
             $this->wasValidationError = true;
             return false;
@@ -263,7 +259,7 @@ class ExamSettingsInput extends \ilSubEnabledFormPropertyGUI
         $invalidSelections = [];
         
         foreach ($_POST[$this->getPostVar()] as $setting => $value) {
-            if (!in_array($value, $this->validExamSettingsKeysBySetting[$setting])) {
+            if (!in_array($value, $this->validExamSettingsKeysBySetting[$setting], true)) {
                 $invalidSelections[] = $setting;
             }
         }
@@ -286,13 +282,13 @@ class ExamSettingsInput extends \ilSubEnabledFormPropertyGUI
             $givenBlockingSettingsBySetting = [];
             
             foreach ($dependenciesOfSetting as $dependentSetting) {
-                if (!in_array($dependentSetting, $_POST[$this->getPostVar()])) {
+                if (!in_array($dependentSetting, $_POST[$this->getPostVar()], true)) {
                     $missingDependenciesOfSetting[] = $this->plugin->txt('setting_' . $dependentSetting);
                 }
             }
 
             foreach ($blockingSettingsOfSetting as $blockingSetting) {
-                if (in_array($blockingSetting, $_POST[$this->getPostVar()])) {
+                if (in_array($blockingSetting, $_POST[$this->getPostVar()], true)) {
                     $givenBlockingSettingsBySetting[] = $this->plugin->txt('setting_' . $blockingSetting);
                 }
             }
@@ -337,23 +333,17 @@ class ExamSettingsInput extends \ilSubEnabledFormPropertyGUI
         return $this->clientLanguageMapping;
     }
 
-    /**
-     * @return string
-     */
     public function getOnloadCode() : string
     {
-        $this->onLoadCodeConfiguration['disabled'] = (bool) $this->getDisabled();
-        return  'il.proctorioSettings.init(' . json_encode($this->onLoadCodeConfiguration) . ');';
+        $this->onLoadCodeConfiguration['disabled'] = $this->getDisabled();
+        return  'il.proctorioSettings.init(' . json_encode($this->onLoadCodeConfiguration, JSON_THROW_ON_ERROR) . ');';
     }
 
-    /**
-     * @throws \ilTemplateException
-     */
     private function render() : string
     {
-        $accordion = new \ilAccordionGUI();
+        $accordion = new ilAccordionGUI();
         $accordion->setBehaviour(
-            $this->wasValidationError ? \ilAccordionGUI::FORCE_ALL_OPEN : \ilAccordionGUI::FIRST_OPEN
+            $this->wasValidationError ? ilAccordionGUI::FORCE_ALL_OPEN : ilAccordionGUI::FIRST_OPEN
         );
 
         $sections = array_keys($this->validExamSettings);
@@ -367,11 +357,6 @@ class ExamSettingsInput extends \ilSubEnabledFormPropertyGUI
         return $accordion->getHTML();
     }
 
-    /**
-     * @param string $section
-     * @return string
-     * @throws \ilTemplateException
-     */
     private function renderSettings(string $section) : string
     {
         $deckCardRowTemplate = $this->plugin->getTemplate('tpl.settings_deck_row.html', true, true);
@@ -397,7 +382,7 @@ class ExamSettingsInput extends \ilSubEnabledFormPropertyGUI
             $deckCardTemplate->setVariable('SMALL_SIZE', $smallSize);
             $deckCardTemplate->parseCurrentBlock();
 
-            if (($i % $cardsPerRow) == 0) {
+            if (($i % $cardsPerRow) === 0) {
                 $deckCardRowTemplate->setCurrentBlock('row');
                 $deckCardRowTemplate->setVariable('KEY', $section);
                 $deckCardRowTemplate->setVariable('CARDS', $deckCardTemplate->get());
@@ -418,7 +403,7 @@ class ExamSettingsInput extends \ilSubEnabledFormPropertyGUI
     /**
      * @inheritDoc
      */
-    public function insert(\ilTemplate $template)
+    public function insert(ilTemplate $template) : void
     {
         $html = $this->render();
 
@@ -427,12 +412,7 @@ class ExamSettingsInput extends \ilSubEnabledFormPropertyGUI
         $template->parseCurrentBlock();
     }
 
-    /**
-     * @param string $setting
-     * @param array $definition
-     * @return \ilTemplate
-     */
-    private function renderCard(string $setting, array $definition) : \ilTemplate
+    private function renderCard(string $setting, array $definition) : ilTemplate
     {
         global $DIC;
 
@@ -450,7 +430,7 @@ class ExamSettingsInput extends \ilSubEnabledFormPropertyGUI
 
         $cardTemplate->setVariable('KEY', $setting);
         if ('binary' === $definition['type']) {
-            if (in_array($setting, $this->getValue())) {
+            if (in_array($setting, $this->getValue(), true)) {
                 $isActive = true;
                 $activeSetting = $setting;
                 $cardTemplate->setVariable('VALUE', $setting);
@@ -484,7 +464,7 @@ class ExamSettingsInput extends \ilSubEnabledFormPropertyGUI
         ]));
 
         if ('binary' === $definition['type']) {
-            if (in_array($setting, $this->getValue())) {
+            if (in_array($setting, $this->getValue(), true)) {
                 $cardTemplate->touchBlock('checkbox_checked');
             }
 
@@ -494,7 +474,7 @@ class ExamSettingsInput extends \ilSubEnabledFormPropertyGUI
             $cardTemplate->parseCurrentBlock();
         } else {
             foreach (array_keys($definition['modes']) as $mode) {
-                if (in_array($mode, $this->getValue())) {
+                if (in_array($mode, $this->getValue(), true)) {
                     $cardTemplate->touchBlock('radio_checked');
                 }
 
