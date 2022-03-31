@@ -1,5 +1,18 @@
 <?php declare(strict_types=1);
-/* Copyright (c) 1998-2019 ILIAS open source, Extended GPL, see docs/LICENSE */
+
+/******************************************************************************
+ *
+ * This file is part of ILIAS, a powerful learning management system.
+ *
+ * ILIAS is licensed with the GPL-3.0, you should have received a copy
+ * of said license along with the source code.
+ *
+ * If this is not the case or you just want to try ILIAS, you'll find
+ * us at:
+ *      https://www.ilias.de
+ *      https://github.com/ILIAS-eLearning
+ *
+ *****************************************************************************/
 
 namespace ILIAS\Plugin\Proctorio\Frontend\Controller;
 
@@ -205,7 +218,7 @@ class TestLaunchAndReview extends RepositoryObject
                 $this->getLaunchUrl(),
                 $this->getTestUrl()
             )));
-        } catch (GuzzleException | Exception $e) {
+        } catch (GuzzleException|Exception $e) {
             $this->log->error($e->getMessage());
 
             return $this->uiRenderer->render([
@@ -279,7 +292,10 @@ class TestLaunchAndReview extends RepositoryObject
 
         $btn = ilLinkButton::getInstance();
         $btn->setUrl((new UriToString())->transform($this->getTakeUrl()));
-        $btn->setCaption($this->getCoreController()->getPluginObject()->txt('btn_label_continue_proctorio_exam'), false);
+        $btn->setCaption(
+            $this->getCoreController()->getPluginObject()->txt('btn_label_continue_proctorio_exam'),
+            false
+        );
 
         $this->pageTemplate->addBlockfile(
             'CONTENT',
@@ -290,7 +306,10 @@ class TestLaunchAndReview extends RepositoryObject
         $template = $this->getCoreController()->getPluginObject()->getTemplate('tpl.tst_start.html', true, true);
 
         $template->setVariable('TEST_TAKE_BUTTON', $btn->render());
-        $template->setVariable('INTRODUCTION_TXT', $this->getCoreController()->getPluginObject()->txt('proctorio_start_screen_info'));
+        $template->setVariable(
+            'INTRODUCTION_TXT',
+            $this->getCoreController()->getPluginObject()->txt('proctorio_start_screen_info')
+        );
 
         return $template->get();
     }
@@ -304,7 +323,10 @@ class TestLaunchAndReview extends RepositoryObject
         if (
             !$this->coreAccessHandler->checkAccess('write', '', $this->getRefId()) &&
             !$this->coreAccessHandler->checkAccess('tst_results', '', $this->getRefId()) &&
-            !$this->coreAccessHandler->checkPositionAccess(ilOrgUnitOperation::OP_MANAGE_PARTICIPANTS, $this->getRefId()) &&
+            !$this->coreAccessHandler->checkPositionAccess(
+                ilOrgUnitOperation::OP_MANAGE_PARTICIPANTS,
+                $this->getRefId()
+            ) &&
             !$this->coreAccessHandler->checkPositionAccess(ilOrgUnitOperation::OP_ACCESS_RESULTS, $this->getRefId())
         ) {
             $this->errorHandler->raiseError($this->lng->txt('permission_denied'), $this->errorHandler->MESSAGE);
@@ -320,7 +342,7 @@ class TestLaunchAndReview extends RepositoryObject
                 $this->getLaunchUrl(),
                 $this->getTestUrl()
             )));
-        } catch (GuzzleException | Exception $e) {
+        } catch (GuzzleException|Exception $e) {
             $this->log->error($e->getMessage());
 
             return $this->uiRenderer->render([

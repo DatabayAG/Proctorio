@@ -1,5 +1,18 @@
 <?php declare(strict_types=1);
-/* Copyright (c) 1998-2019 ILIAS open source, Extended GPL, see docs/LICENSE */
+
+/******************************************************************************
+ *
+ * This file is part of ILIAS, a powerful learning management system.
+ *
+ * ILIAS is licensed with the GPL-3.0, you should have received a copy
+ * of said license along with the source code.
+ *
+ * If this is not the case or you just want to try ILIAS, you'll find
+ * us at:
+ *      https://www.ilias.de
+ *      https://github.com/ILIAS-eLearning
+ *
+ *****************************************************************************/
 
 namespace ILIAS\Plugin\Proctorio\Webservice\Rest;
 
@@ -240,8 +253,11 @@ class Impl implements Rest
      * @param URI $testLaunchUrl
      * @return string
      */
-    private function buildExamStartRegex(ilObjTest $test, string $regexQuotedBaseUrlWithScript, URI $testLaunchUrl) : string
-    {
+    private function buildExamStartRegex(
+        ilObjTest $test,
+        string $regexQuotedBaseUrlWithScript,
+        URI $testLaunchUrl
+    ) : string {
         $startParameterNames = ['ref_id', 'cmd'];
         $startParameterValues = [$test->getRefId(), 'TestLaunchAndReview\.start'];
         $startRegex = '((.*?([\?&]';
@@ -337,7 +353,10 @@ class Impl implements Rest
         $evaluationParameterNames = ['ref_id', 'cmdClass'];
         $evaluationParameterValues = [$test->getRefId(), strtolower(ilTestEvaluationGUI::class)];
         $endRegexEval = '((.*?([\?&]';
-        $endRegexEval .= '(' . implode('|', $evaluationParameterNames) . ')=(' . implode('|', $evaluationParameterValues) . ')';
+        $endRegexEval .= '(' . implode('|', $evaluationParameterNames) . ')=(' . implode(
+            '|',
+            $evaluationParameterValues
+        ) . ')';
         $endRegexEval .= ')){2})';
 
         $infoParameterNames = ['ref_id', 'cmdClass', 'cmd'];

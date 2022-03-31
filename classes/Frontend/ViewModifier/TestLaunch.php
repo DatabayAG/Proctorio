@@ -1,5 +1,18 @@
 <?php declare(strict_types=1);
-/* Copyright (c) 1998-2019 ILIAS open source, Extended GPL, see docs/LICENSE */
+
+/******************************************************************************
+ *
+ * This file is part of ILIAS, a powerful learning management system.
+ *
+ * ILIAS is licensed with the GPL-3.0, you should have received a copy
+ * of said license along with the source code.
+ *
+ * If this is not the case or you just want to try ILIAS, you'll find
+ * us at:
+ *      https://www.ilias.de
+ *      https://github.com/ILIAS-eLearning
+ *
+ *****************************************************************************/
 
 namespace ILIAS\Plugin\Proctorio\Frontend\ViewModifier;
 
@@ -26,7 +39,7 @@ class TestLaunch extends Base
 {
     private const CMD_START_TEST = 'startPlayer';
     private const CMD_RESUME_TEST = 'resumePlayer';
-    
+
     /** @var ilObjTest */
     private $test;
     /** @var bool */
@@ -58,7 +71,7 @@ class TestLaunch extends Base
             'listSortDesc',
             'saveTags',
         ]);
-        
+
         $isBaseClassInfoScreenRequest = (
             $this->isBaseClass(ilObjTestGUI::class) &&
             in_array(strtolower($this->ctrl->getCmd()), $validInfoScreenCommands, true)
@@ -66,10 +79,10 @@ class TestLaunch extends Base
 
         $isCmdClassInfoScreenRequest = (
             $this->isCommandClass(ilInfoScreenGUI::class) &&
-            in_array(strtolower($this->ctrl->getCmd()), $validInfoScreenCommands, true)
+                in_array(strtolower($this->ctrl->getCmd()), $validInfoScreenCommands, true)
         ) || (
             $this->isCommandClass(ilObjTestGUI::class) &&
-            in_array(strtolower($this->ctrl->getCmd()), $validInfoScreenCommands, true)
+                in_array(strtolower($this->ctrl->getCmd()), $validInfoScreenCommands, true)
         );
 
         $isGotoRequest = (
@@ -89,10 +102,10 @@ class TestLaunch extends Base
         if ($refId <= 0) {
             $refId = $this->getTargetRefId();
         }
-        
+
         return $refId;
     }
-    
+
     /**
      * @inheritDoc
      */
@@ -105,7 +118,7 @@ class TestLaunch extends Base
         if ('template_get' !== $part) {
             return false;
         }
-        
+
         if ($this->isPreviewContext()) {
             if ('Modules/Course/Intro/tpl.intro_layout.html' !== $parameters['tpl_id']) {
                 return false;
@@ -209,7 +222,10 @@ class TestLaunch extends Base
         return (
             $this->coreAccessHandler->checkAccess('write', '', $this->getTestRefId()) ||
             $this->coreAccessHandler->checkAccess('tst_results', '', $this->getTestRefId()) ||
-            $this->coreAccessHandler->checkPositionAccess(ilOrgUnitOperation::OP_MANAGE_PARTICIPANTS, $this->getTestRefId()) ||
+            $this->coreAccessHandler->checkPositionAccess(
+                ilOrgUnitOperation::OP_MANAGE_PARTICIPANTS,
+                $this->getTestRefId()
+            ) ||
             $this->coreAccessHandler->checkPositionAccess(ilOrgUnitOperation::OP_ACCESS_RESULTS, $this->getTestRefId())
         );
     }
@@ -219,7 +235,7 @@ class TestLaunch extends Base
         if ($this->reviewButtonRendered) {
             return;
         }
-        
+
         if (!$this->hasReviewRbacAccess() || !$this->accessHandler->mayReadTestReviews($this->test)) {
             return;
         }
@@ -239,7 +255,7 @@ class TestLaunch extends Base
             false,
             false
         );
-        
+
         if ($toolbarButtons->length > 0) {
             $referenceButton = $toolbarButtons->item(0);
 
@@ -268,7 +284,7 @@ class TestLaunch extends Base
                         return;
                     }
                     $toolbarDoc->encoding = 'UTF-8';
-                    
+
                     foreach ($toolbarDoc->getElementsByTagName('body')->item(0)->childNodes as $child) {
                         $importedToolbarNode = $doc->importNode($child, true);
                         $nodes->item(0)->appendChild($importedToolbarNode);

@@ -1,5 +1,18 @@
 <?php declare(strict_types=1);
-/* Copyright (c) 1998-2019 ILIAS open source, Extended GPL, see docs/LICENSE */
+
+/******************************************************************************
+ *
+ * This file is part of ILIAS, a powerful learning management system.
+ *
+ * ILIAS is licensed with the GPL-3.0, you should have received a copy
+ * of said license along with the source code.
+ *
+ * If this is not the case or you just want to try ILIAS, you'll find
+ * us at:
+ *      https://www.ilias.de
+ *      https://github.com/ILIAS-eLearning
+ *
+ *****************************************************************************/
 
 namespace ILIAS\Plugin\Proctorio\Service\Proctorio;
 
@@ -53,7 +66,10 @@ class Impl
     public function getConfigurationForTest(ilObjTest $test) : array
     {
         return [
-            'status' => $this->globalSettings->getSettings()->get($this->getTestSettingsPrefix($test) . '_status', false),
+            'status' => $this->globalSettings->getSettings()->get(
+                $this->getTestSettingsPrefix($test) . '_status',
+                false
+            ),
             'exam_settings' => array_filter(explode(
                 ',',
                 $this->globalSettings->getSettings()->get($this->getTestSettingsPrefix($test) . '_exam_settings', '')
@@ -67,7 +83,10 @@ class Impl
      */
     public function saveConfigurationForTest(ilObjTest $test, ilPropertyFormGUI $form) : void
     {
-        $this->globalSettings->getSettings()->set($this->getTestSettingsPrefix($test) . '_status', (int) $form->getInput('status'));
+        $this->globalSettings->getSettings()->set(
+            $this->getTestSettingsPrefix($test) . '_status',
+            (int) $form->getInput('status')
+        );
         $this->globalSettings->getSettings()->set($this->getTestSettingsPrefix($test) . '_exam_settings', implode(
             ',',
             (array) $form->getInput('exam_settings')

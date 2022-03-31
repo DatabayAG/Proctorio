@@ -1,5 +1,18 @@
 <?php declare(strict_types=1);
-/* Copyright (c) 1998-2019 ILIAS open source, Extended GPL, see docs/LICENSE */
+
+/******************************************************************************
+ *
+ * This file is part of ILIAS, a powerful learning management system.
+ *
+ * ILIAS is licensed with the GPL-3.0, you should have received a copy
+ * of said license along with the source code.
+ *
+ * If this is not the case or you just want to try ILIAS, you'll find
+ * us at:
+ *      https://www.ilias.de
+ *      https://github.com/ILIAS-eLearning
+ *
+ *****************************************************************************/
 
 use ILIAS\Plugin\Proctorio\Administration\Controller;
 use ILIAS\Plugin\Proctorio\Administration\GeneralSettings\UI\Form;
@@ -35,13 +48,27 @@ class ilProctorioConfigGUI extends Controller\Base
 
     public function showSettings() : void
     {
-        $form = new Form($this->plugin_object, $this, $this->settings, $this->objectCache, $this->rbacReview, $this->acl);
+        $form = new Form(
+            $this->plugin_object,
+            $this,
+            $this->settings,
+            $this->objectCache,
+            $this->rbacReview,
+            $this->acl
+        );
         $this->pageTemplate->setContent($form->getHTML());
     }
 
     public function saveSettings() : void
     {
-        $form = new Form($this->plugin_object, $this, $this->settings, $this->objectCache, $this->rbacReview, $this->acl);
+        $form = new Form(
+            $this->plugin_object,
+            $this,
+            $this->settings,
+            $this->objectCache,
+            $this->rbacReview,
+            $this->acl
+        );
         if ($form->saveObject()) {
             ilUtil::sendSuccess($this->lng->txt('saved_successfully'), true);
             $this->ctrl->redirect($this);

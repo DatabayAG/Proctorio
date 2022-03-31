@@ -1,5 +1,18 @@
 <?php declare(strict_types=1);
-/* Copyright (c) 1998-2019 ILIAS open source, Extended GPL, see docs/LICENSE */
+
+/******************************************************************************
+ *
+ * This file is part of ILIAS, a powerful learning management system.
+ *
+ * ILIAS is licensed with the GPL-3.0, you should have received a copy
+ * of said license along with the source code.
+ *
+ * If this is not the case or you just want to try ILIAS, you'll find
+ * us at:
+ *      https://www.ilias.de
+ *      https://github.com/ILIAS-eLearning
+ *
+ *****************************************************************************/
 
 use ILIAS\DI\Container;
 use ILIAS\Plugin\Proctorio\Administration\GeneralSettings\Settings;
@@ -20,8 +33,8 @@ class ilProctorioPlugin extends ilUserInterfaceHookPlugin
 {
     private const CTYPE = 'Services';
     private const CNAME = 'UIComponent';
-    private  const SLOT_ID = 'uihk';
-    private  const PNAME = 'Proctorio';
+    private const SLOT_ID = 'uihk';
+    private const PNAME = 'Proctorio';
 
     /** @var self */
     private static $instance = null;
@@ -69,7 +82,9 @@ class ilProctorioPlugin extends ilUserInterfaceHookPlugin
                 );
             };
 
-            $GLOBALS['DIC']['plugin.proctorio.acl'] = static function (Container $c) : \ILIAS\Plugin\Proctorio\AccessControl\Acl {
+            $GLOBALS['DIC']['plugin.proctorio.acl'] = static function (
+                Container $c
+            ) : \ILIAS\Plugin\Proctorio\AccessControl\Acl {
                 $acl = new Acl(new Registry());
 
                 $acl
@@ -93,7 +108,9 @@ class ilProctorioPlugin extends ilUserInterfaceHookPlugin
                 );
             };
 
-            $GLOBALS['DIC']['plugin.proctorio.service'] = static function (Container $c) : \ILIAS\Plugin\Proctorio\Service\Proctorio\Impl {
+            $GLOBALS['DIC']['plugin.proctorio.service'] = static function (
+                Container $c
+            ) : \ILIAS\Plugin\Proctorio\Service\Proctorio\Impl {
                 return new \ILIAS\Plugin\Proctorio\Service\Proctorio\Impl(
                     $c->user(),
                     $c['plugin.proctorio.settings']

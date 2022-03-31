@@ -1,5 +1,18 @@
 <?php declare(strict_types=1);
-/* Copyright (c) 1998-2019 ILIAS open source, Extended GPL, see docs/LICENSE */
+
+/******************************************************************************
+ *
+ * This file is part of ILIAS, a powerful learning management system.
+ *
+ * ILIAS is licensed with the GPL-3.0, you should have received a copy
+ * of said license along with the source code.
+ *
+ * If this is not the case or you just want to try ILIAS, you'll find
+ * us at:
+ *      https://www.ilias.de
+ *      https://github.com/ILIAS-eLearning
+ *
+ *****************************************************************************/
 
 namespace ILIAS\Plugin\Proctorio\Frontend\Form;
 
@@ -156,7 +169,7 @@ class ExamSettingsInput extends ilSubEnabledFormPropertyGUI
                     if (isset($definition['depends_on']) && is_array($definition['depends_on'])) {
                         $this->dependenciesOfSetting[$setting] = $definition['depends_on'];
                     }
-                    
+
                     if (isset($definition['blocks']) && is_array($definition['blocks'])) {
                         foreach ($definition['blocks'] as $blockingSetting) {
                             $this->blocksBySetting[$blockingSetting][] = $settings;
@@ -251,19 +264,22 @@ class ExamSettingsInput extends ilSubEnabledFormPropertyGUI
         $submittedExamSettingKeys = array_keys($_POST[$this->getPostVar()]);
         $invalidRequestedExamSettings = array_diff($submittedExamSettingKeys, $validExamSettingKeys);
         if (count($invalidRequestedExamSettings) > 0) {
-            $this->setAlert(sprintf($this->plugin->txt('err_invalid_selection'), implode(', ', $invalidRequestedExamSettings)));
+            $this->setAlert(sprintf(
+                $this->plugin->txt('err_invalid_selection'),
+                implode(', ', $invalidRequestedExamSettings)
+            ));
             $this->wasValidationError = true;
             return false;
         }
-        
+
         $invalidSelections = [];
-        
+
         foreach ($_POST[$this->getPostVar()] as $setting => $value) {
             if (!in_array($value, $this->validExamSettingsKeysBySetting[$setting], true)) {
                 $invalidSelections[] = $setting;
             }
         }
-        
+
         if (count($invalidSelections) > 0) {
             $this->setAlert(sprintf(
                 $this->plugin->txt('err_invalid_selection'),
@@ -272,7 +288,7 @@ class ExamSettingsInput extends ilSubEnabledFormPropertyGUI
             $this->wasValidationError = true;
             return false;
         }
-        
+
         $missingDependencies = [];
         $blockingSettings = [];
         foreach ($_POST[$this->getPostVar()] as $setting => $value) {
@@ -280,7 +296,7 @@ class ExamSettingsInput extends ilSubEnabledFormPropertyGUI
             $blockingSettingsOfSetting = $this->blocksBySetting[$value] ?? [];
             $missingDependenciesOfSetting = [];
             $givenBlockingSettingsBySetting = [];
-            
+
             foreach ($dependenciesOfSetting as $dependentSetting) {
                 if (!in_array($dependentSetting, $_POST[$this->getPostVar()], true)) {
                     $missingDependenciesOfSetting[] = $this->plugin->txt('setting_' . $dependentSetting);
@@ -336,7 +352,7 @@ class ExamSettingsInput extends ilSubEnabledFormPropertyGUI
     public function getOnloadCode() : string
     {
         $this->onLoadCodeConfiguration['disabled'] = $this->getDisabled();
-        return  'il.proctorioSettings.init(' . json_encode($this->onLoadCodeConfiguration, JSON_THROW_ON_ERROR) . ');';
+        return 'il.proctorioSettings.init(' . json_encode($this->onLoadCodeConfiguration, JSON_THROW_ON_ERROR) . ');';
     }
 
     private function render() : string
@@ -423,7 +439,7 @@ class ExamSettingsInput extends ilSubEnabledFormPropertyGUI
 
         $cardTemplate->touchBlock('role_' . $definition['type']);
         $cardTemplate->touchBlock($definition['type']);
-        
+
         if ($this->getDisabled()) {
             $cardTemplate->touchBlock('disabled');
         }
@@ -450,7 +466,7 @@ class ExamSettingsInput extends ilSubEnabledFormPropertyGUI
                 $cardTemplate->setVariable('VALUE', '');
             }
         }
-        
+
         $presentedSetting = $setting;
         if ($isActive) {
             $presentedSetting = $activeSetting;

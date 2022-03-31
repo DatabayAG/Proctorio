@@ -60,7 +60,7 @@ class Form extends ilPropertyFormGUI
         $this->addCommandButton('saveSettings', $this->lng->txt('save'));
         $this->setFormAction($this->ctrl->getFormAction($this->cmdObject, 'saveSettings'));
         $this->setTitle($this->lng->txt('settings'));
-        
+
         $apiKey = new ilTextInputGUI(
             $this->plugin->txt('api_key'),
             'api_key'
@@ -101,7 +101,7 @@ class Form extends ilPropertyFormGUI
         $apiLaunchReviewEndpoint->setRequired(true);
         $apiLaunchReviewEndpoint->setValidationRegexp('/^(\/([\.A-Za-z0-9_-]+|\[[A-Za-z0-9_-]+\]))+$/');
         $this->addItem($apiLaunchReviewEndpoint);
-        
+
         $accessControlSection = new ilFormSectionHeaderGUI();
         $accessControlSection->setTitle($this->plugin->txt('header_access_control'));
         $this->addItem($accessControlSection);
