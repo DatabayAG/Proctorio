@@ -60,7 +60,9 @@ cookie policy of modern browsers.
 As long as the ILIAS core does not support the configuration of this cookie
 flag you'll have to patch the code fragments where ILIAS sets cookie parameters:
 
-`\ilInitialisation::setSessionCookieParams`:
+`ilInitialisation::setSessionCookieParams`:  Search for `setSessionCookieParams` and
+add the following patches.
+
 ```php
 <?php
 // [...]
@@ -93,7 +95,9 @@ protected static function setSessionCookieParams()
 // [...]
 ```
 
-`\ilUtil::setCookie`:
+`\ilUtil::setCookie`:  Search for `setcookie` and replace the existing
+function call with the following code (without `// [...]`).
+
 ```php
 <?php
 // [...]
@@ -114,7 +118,9 @@ setcookie(
 // [...]
 ```
 
-`\ilAuthSession::init`:
+`\ilAuthSession::init`:  Search for `init` and add the following
+patch to the line after `session_start();`.
+
 ```php
 <?php
 // [...]
@@ -146,7 +152,9 @@ public function init()
 // [...]
 ```
 
-`\ilHTTPS::enableSecureCookies`:
+`\ilHTTPS::enableSecureCookies`: Search for `session_set_cookie_params` and
+replace the existing function call with the following code (without `// [...]`).
+
 ```php
 <?php
 // [...]
@@ -165,4 +173,4 @@ session_set_cookie_params([
 
 ## License
 
-See LICENSE file in this repository.
+See [LICENSE](./LICENSE) file in this repository.
