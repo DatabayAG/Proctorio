@@ -9,8 +9,9 @@ in this document are to be interpreted as described in
 
 * [Requirements](#requirements)
 * [Installation](#installation)
-    * [Composer](#composer)
+  * [Composer](#composer)
 * [Know Issues](#known-issues)
+  * [Same Site Cookie Policy](#same-site-cookie-policy) 
 * [License](#license)
 
 ## Requirements
@@ -40,9 +41,9 @@ cd Customizing/global/plugins/Services/UIComponent/UserInterfaceHook/Proctorio
 composer install --no-dev
 ```
 
-### Known Issues
+## Known Issues
 
-#### Same Site Cookie Policy
+### Same Site Cookie Policy
 
 If the plugin is not working after the Proctorio pre-checks and the HTML
 document does not show any progress, this might be caused by missing
