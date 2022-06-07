@@ -108,7 +108,7 @@ class Impl implements Rest
             'oauth_consumer_key' => $this->proctorioSettings->getApiKey(),
             'exam_start' => $startRegexWithBaseUrl,
             'exam_take' => $regexQuotedBaseUrlWithScript . $takeRegex,
-            'exam_end' => $regexQuotedBaseUrlWithScript . $endRegex,
+            'exam_end' => $regexQuotedBaseUrlWithScript . $endRegex . '|(' . '^((?!ref_id=' . $test->getRefId() . ').)*$' . ')',
             'exam_settings' => implode(',', $this->service->getConfigurationForTest($test)['exam_settings']),
             'fullname' => $this->service->getActor()->getFullname(),
             'exam_tag' => (string) $test->getId(),
