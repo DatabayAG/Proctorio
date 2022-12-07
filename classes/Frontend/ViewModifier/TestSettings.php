@@ -114,7 +114,9 @@ class TestSettings extends Base
                     $this->ctrl->getLinkTargetByClass(
                         [ilUIPluginRouterGUI::class, get_class($this->getCoreController())],
                         'TestSettings.showSettingsCmd'
-                    )
+                    ),
+                    ['showSettingsCmd'],
+                    get_class($this->getCoreController())
                 );
             }
         }
