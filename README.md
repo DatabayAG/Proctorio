@@ -58,7 +58,17 @@ is part of the HTTP request URL.
 This is related to the [*SameSite*](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie/SameSite)
 cookie policy of modern browsers.
 
-As long as the ILIAS core does not support the configuration of this cookie
+It might already work if you modify your `php.ini` configuration (see: https://www.php.net/manual/en/session.security.ini.php).
+
+```ini
+session.cookie_samesite="None"
+```
+
+This should affect the PHP session id cookie. In general, and for other HTTP cookies in ILIAS it could be worth
+to check if the http://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_cookie_flags directive could be used
+instead/alternatively.
+
+If **not** and as long as the ILIAS core does not support the configuration of this cookie
 flag you'll have to patch the code fragments where ILIAS sets cookie parameters:
 
 `ilInitialisation::setSessionCookieParams`:  Search for `setSessionCookieParams` and
